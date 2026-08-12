@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw } from "lucide-react";
+import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw, CheckCircle, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,20 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart.store";
 import { useWishlistStore } from "@/store/wishlist.store";
 import { useAuthStore } from "@/store/auth.store";
-import { formatPrice, calculateDiscount } from "@/lib/utils";
+import { formatPrice, calculateDiscount, getInitials } from "@/lib/utils";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+
+interface Review {
+  id: string;
+  rating: number;
+  title?: string | null;
+  body: string;
+  isVerified: boolean;
+  createdAt: string;
+  user: { id: string; name: string; image?: string | null };
+}
 
 interface ProductDetailClientProps {
   product: Product;
@@ -30,11 +40,66 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
 
+  // Reviews state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewBody, setReviewBody] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [reviewsFetched, setReviewsFetched] = useState(false);
+
   const addItem = useCartStore((s) => s.addItem);
-  const { toggleItem, isInWishlist } = useWishlistStore();
+  const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const user = useAuthStore((s) => s.user);
   const router = useRouter();
   const inWishlist = isInWishlist(product.id);
+
+  const fetchReviews = useCallback(async () => {
+    if (reviewsFetched) return;
+    setReviewsLoading(true);
+    try {
+      const res = await fetch(`/api/products/${product.slug}/reviews`);
+      const data = await res.json();
+      if (data.success) setReviews(data.data as Review[]);
+    } catch { /* silent */ } finally {
+      setReviewsLoading(false);
+      setReviewsFetched(true);
+    }
+  }, [product.slug, reviewsFetched]);
+
+  useEffect(() => {
+    if (activeTab === "reviews") fetchReviews();
+  }, [activeTab, fetchReviews]);
+
+  async function handleSubmitReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoggedIn()) {
+      toast.error("Please login to submit a review", { icon: "🔒" });
+      router.push("/login");
+      return;
+    }
+    if (!reviewBody.trim()) { toast.error("Please write a review"); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/products/${product.slug}/reviews`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: reviewRating, title: reviewTitle, body: reviewBody }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Review submitted!");
+        setReviews((prev) => [data.data as Review, ...prev]);
+        setReviewTitle(""); setReviewBody(""); setReviewRating(5);
+      } else {
+        toast.error(data.error ?? "Failed to submit review");
+      }
+    } catch { toast.error("Something went wrong"); }
+    finally { setSubmitting(false); }
+  }
 
   const discount = product.comparePrice
     ? calculateDiscount(product.price, product.comparePrice)
@@ -333,7 +398,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   router.push("/login");
                   return;
                 }
-                toggleItem(product);
+                toggleItemWithSync(product);
                 toast.success(inWishlist ? "Removed from wishlist" : "Added to wishlist");
               }}
               className={inWishlist ? "text-red-500 border-red-200 hover:bg-red-50" : ""}
@@ -422,36 +487,131 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
           {activeTab === "reviews" && (
             <div className="space-y-6 max-w-2xl">
+              {/* Rating summary */}
               <div className="flex items-center gap-6 p-6 rounded-xl bg-neutral-50">
                 <div className="text-center">
-                  <p className="text-5xl font-black text-neutral-900">
-                    {product.rating.toFixed(1)}
-                  </p>
+                  <p className="text-5xl font-black text-neutral-900">{product.rating.toFixed(1)}</p>
                   <StarRating rating={product.rating} showCount={false} size="sm" />
-                  <p className="text-xs text-neutral-500 mt-1">
-                    {product.reviewCount} reviews
-                  </p>
+                  <p className="text-xs text-neutral-500 mt-1">{reviews.length} reviews</p>
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  {[5, 4, 3, 2, 1].map((star) => (
-                    <div key={star} className="flex items-center gap-2">
-                      <span className="text-xs text-neutral-500 w-4">{star}</span>
-                      <div className="flex-1 h-2 rounded-full bg-neutral-200 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-amber-400"
-                          style={{
-                            width: `${star === 5 ? 60 : star === 4 ? 25 : star === 3 ? 10 : 3}%`,
-                          }}
-                        />
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = reviews.filter((r) => r.rating === star).length;
+                    const pct = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
+                    return (
+                      <div key={star} className="flex items-center gap-2">
+                        <span className="text-xs text-neutral-500 w-4">{star}</span>
+                        <div className="flex-1 h-2 rounded-full bg-neutral-200 overflow-hidden">
+                          <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs text-neutral-400 w-6">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Submit review form */}
+              <div className="rounded-xl border border-neutral-200 p-5">
+                <h3 className="font-semibold text-neutral-900 mb-4">Write a Review</h3>
+                {!isLoggedIn() ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-neutral-500 mb-3">Login to submit a review</p>
+                    <Link href="/login"><Button size="sm" variant="outline">Sign In</Button></Link>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmitReview} className="space-y-4">
+                    {/* Star picker */}
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700 mb-2 block">Your Rating</label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button key={star} type="button" onClick={() => setReviewRating(star)}
+                            className="transition-transform hover:scale-110">
+                            <Star className={`h-7 w-7 ${star <= reviewRating ? "text-amber-400 fill-amber-400" : "text-neutral-300"}`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700 mb-1 block">Title (optional)</label>
+                      <input value={reviewTitle} onChange={(e) => setReviewTitle(e.target.value)}
+                        placeholder="Summarize your experience"
+                        className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-700 mb-1 block">Review <span className="text-red-500">*</span></label>
+                      <textarea value={reviewBody} onChange={(e) => setReviewBody(e.target.value)}
+                        rows={3} placeholder="Share your experience with this product..."
+                        className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 resize-none"
+                      />
+                    </div>
+                    <Button type="submit" disabled={submitting} size="sm" className="gap-2">
+                      {submitting && <Loader2 size={14} className="animate-spin" />}
+                      {submitting ? "Submitting..." : "Submit Review"}
+                    </Button>
+                  </form>
+                )}
+              </div>
+
+              {/* Reviews list */}
+              {reviewsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+                </div>
+              ) : reviews.length === 0 ? (
+                <p className="text-sm text-neutral-500 text-center py-6">
+                  No reviews yet — be the first to review this product!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="rounded-xl border border-neutral-100 p-5">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-white text-xs font-bold">
+                          {review.user.image
+                            ? <img src={review.user.image} alt={review.user.name} className="h-full w-full rounded-full object-cover" />
+                            : getInitials(review.user.name)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-neutral-900">{review.user.name}</p>
+                            {review.isVerified && (
+                              <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                <CheckCircle size={11} className="fill-green-600 text-white" /> Verified Purchase
+                              </span>
+                            )}
+                            <span className="text-xs text-neutral-400 ml-auto">
+                              {new Date(review.createdAt).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          </div>
+                          <div className="flex mt-1 mb-2">
+                            {[1,2,3,4,5].map((s) => (
+                              <Star key={s} className={`h-3.5 w-3.5 ${s <= review.rating ? "text-amber-400 fill-amber-400" : "text-neutral-200"}`} />
+                            ))}
+                          </div>
+                          {review.title && <p className="text-sm font-medium text-neutral-800 mb-1">{review.title}</p>}
+                          <p className="text-sm text-neutral-600 leading-relaxed">{review.body}</p>
+                          {/* Delete own review */}
+                          {user?.id === review.user.id && (
+                            <button
+                              onClick={async () => {
+                                await fetch(`/api/products/${product.slug}/reviews`, { method: "DELETE", credentials: "include" });
+                                setReviews((prev) => prev.filter((r) => r.id !== review.id));
+                                toast.success("Review deleted");
+                              }}
+                              className="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors"
+                            >
+                              Delete my review
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <p className="text-sm text-neutral-500 text-center">
-                Reviews are loaded from the database in production.
-              </p>
+              )}
             </div>
           )}
         </div>

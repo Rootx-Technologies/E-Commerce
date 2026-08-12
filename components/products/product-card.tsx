@@ -21,11 +21,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className, priority = false }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
-  const { toggleItem, isInWishlist } = useWishlistStore();
+  const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   useEffect(() => setMounted(true), []);
@@ -33,7 +32,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   const inWishlist = mounted && isInWishlist(product.id);
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : null;
   const primaryImage = product.images.find((i) => i.isPrimary) ?? product.images[0];
-  const secondaryImage = product.images[1];
+  const secondaryImage = product.images.find((i) => !i.isPrimary) ?? product.images[1];
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -61,7 +60,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       router.push("/login");
       return;
     }
-    toggleItem(product);
+    toggleItemWithSync(product);
     toast.success(inWishlist ? "Removed from wishlist" : "Added to wishlist", {
       icon: inWishlist ? "💔" : "❤️", duration: 1500,
     });
@@ -70,21 +69,35 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-      className={cn("group relative", className)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
+      className={cn("group relative", className)}>
       <Link href={`/products/${product.slug}`} className="block rounded-[1.6rem] border border-neutral-200 bg-white/80 p-2 shadow-[0_20px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-neutral-100">
           {primaryImage && (
-            <Image
-              src={isHovered && secondaryImage ? secondaryImage.url : primaryImage.url}
-              alt={primaryImage.alt ?? product.name}
-              fill
-              className="object-cover transition-all duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              priority={priority}
-            />
+            <>
+              {/* Primary image — fades out on hover */}
+              <Image
+                src={primaryImage.url}
+                alt={primaryImage.alt ?? product.name}
+                fill
+                className={cn(
+                  "object-cover transition-all duration-500 ease-in-out group-hover:scale-105",
+                  secondaryImage ? "group-hover:opacity-0" : ""
+                )}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                priority={priority}
+              />
+              {/* Secondary image — fades in on hover */}
+              {secondaryImage && (
+                <Image
+                  src={secondaryImage.url}
+                  alt={secondaryImage.alt ?? product.name}
+                  fill
+                  className="object-cover opacity-0 transition-all duration-500 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
+              )}
+            </>
           )}
 
           {/* Badges */}
@@ -136,7 +149,8 @@ export function ProductCard({ product, className, priority = false }: ProductCar
               {product.brand.name}
             </p>
           )}
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-amber-600 sm:text-[15px]">
+          {/* Fixed height so all cards stay equal — 2 lines reserved always */}
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-amber-600 sm:min-h-[2.75rem] sm:text-[15px]">
             {product.name}
           </h3>
 

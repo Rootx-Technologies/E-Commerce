@@ -69,7 +69,7 @@ export function Header() {
       {/* Announcement Bar */}
       <div className="bg-[radial-gradient(circle_at_top,_#2a2a2a,_#111111_55%)] px-4 py-2 text-center text-[10px] font-medium tracking-[0.22em] text-white sm:text-xs">
         FREE SHIPPING OVER ₨5,000 &nbsp;|&nbsp; CODE{" "}
-        <span className="font-black text-amber-400">RAMZAN10</span> = 10% OFF
+        <span className="font-black text-amber-400">MARQET10</span> = 10% OFF
       </div>
 
       <header className={cn(

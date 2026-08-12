@@ -7,6 +7,7 @@ import { fetchAdminBanners, createBanner, updateBanner, deleteBanner } from "@/l
 import { Modal } from "@/components/admin/modal";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { FormField, Input, Textarea } from "@/components/admin/form-field";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 interface Banner {
   id: string;
@@ -171,14 +172,14 @@ export function AdminBannersClient() {
           <FormField label="Subtitle">
             <Textarea rows={2} value={form.subtitle as string} onChange={(e) => setF("subtitle", e.target.value)} placeholder="Limited time offer on all clothing" />
           </FormField>
-          <FormField label="Image URL" required={!editTarget} hint={editTarget ? "Leave empty to keep existing image" : ""}>
-            <Input value={form.imageUrl as string} onChange={(e) => setF("imageUrl", e.target.value)} placeholder="https://res.cloudinary.com/..." />
-          </FormField>
-          {form.imageUrl && (
-            <div className="h-32 w-full rounded-lg overflow-hidden bg-neutral-100">
-              <img src={form.imageUrl as string} alt="Preview" className="h-full w-full object-cover" />
-            </div>
-          )}
+          <ImageUploader
+            label="Banner Image"
+            hint={editTarget ? "Leave empty to keep existing image" : "Required"}
+            folder="marqet/banners"
+            value={form.imageUrl as string}
+            onChange={(url) => setF("imageUrl", url)}
+          />
+          {/* Legacy URL preview removed — uploader handles preview */}
           <FormField label="Link (URL)" hint="Optional — where the banner clicks to">
             <Input value={form.link as string} onChange={(e) => setF("link", e.target.value)} placeholder="/deals" />
           </FormField>

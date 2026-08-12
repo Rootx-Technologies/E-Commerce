@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Heart, Trash2, ShoppingBag, ArrowRight, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWishlistStore } from "@/store/wishlist.store";
 import { useCartStore } from "@/store/cart.store";
+import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
@@ -14,17 +16,30 @@ import toast from "react-hot-toast";
 
 export function WishlistClient() {
   const [mounted, setMounted] = useState(false);
-  const { items, removeItem, clear } = useWishlistStore();
+  const { items, removeItemWithSync, clear } = useWishlistStore();
   const addToCart = useCartStore((s) => s.addItem);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
 
   const safeItems = mounted ? items : [];
+  const loggedIn = mounted && isLoggedIn();
 
   const handleMoveToCart = (product: (typeof items)[0]) => {
+    if (!isLoggedIn()) {
+      toast.error("Please login to add items to your cart", { icon: "🔒" });
+      router.push("/login");
+      return;
+    }
     addToCart(product, 1);
-    removeItem(product.id);
+    removeItemWithSync(product.id);
     toast.success("Moved to cart!", { icon: "🛍️" });
+  };
+
+  const handleRemove = (productId: string) => {
+    removeItemWithSync(productId);
+    toast.success("Removed from wishlist");
   };
 
   return (
@@ -47,7 +62,7 @@ export function WishlistClient() {
                 Items you&apos;ve saved for later
               </p>
             </div>
-            {safeItems.length > 0 && (
+            {loggedIn && safeItems.length > 0 && (
               <button
                 onClick={() => { clear(); toast.success("Wishlist cleared"); }}
                 className="text-sm text-red-500 hover:text-red-700 transition-colors"
@@ -61,13 +76,30 @@ export function WishlistClient() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         {!mounted ? (
-          // Loading skeleton
+          /* Loading skeleton */
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-xl bg-neutral-200 aspect-[3/4]" />
             ))}
           </div>
+        ) : !loggedIn ? (
+          /* Not logged in */
+          <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+              <Lock className="h-10 w-10 text-neutral-300" />
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-neutral-900">Login to view your wishlist</p>
+              <p className="mt-1 text-sm text-neutral-500">
+                Save your favourite items and access them from any device.
+              </p>
+            </div>
+            <Link href="/login">
+              <Button className="gap-2">Sign In to View Wishlist</Button>
+            </Link>
+          </div>
         ) : safeItems.length === 0 ? (
+          /* Empty wishlist */
           <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
               <Heart className="h-10 w-10 text-neutral-300" />
@@ -107,7 +139,7 @@ export function WishlistClient() {
                     >
                       {/* Remove button */}
                       <button
-                        onClick={() => { removeItem(product.id); toast.success("Removed from wishlist"); }}
+                        onClick={() => handleRemove(product.id)}
                         className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-500 hover:bg-red-50 hover:text-red-500 shadow-sm transition-all"
                         aria-label="Remove from wishlist"
                       >
@@ -177,7 +209,6 @@ export function WishlistClient() {
               </AnimatePresence>
             </div>
 
-            {/* Continue shopping */}
             <div className="mt-10 text-center">
               <Link href="/products">
                 <Button variant="outline" className="gap-2">

@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ShieldCheck, Truck, CreditCard, Banknote, ChevronRight, CheckCircle } from "lucide-react";
+import { ShieldCheck, Truck, CreditCard, Banknote, ChevronRight, CheckCircle, MapPin } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
+import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -36,10 +37,41 @@ export function CheckoutClient() {
   const [paymentMethod, setPaymentMethod] = useState<"STRIPE" | "COD">("COD");
   const [isPlacing, setIsPlacing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<Array<{
+    id: string; fullName: string; phone: string; addressLine1: string;
+    addressLine2?: string | null; city: string; state: string; postalCode: string; isDefault: boolean;
+  }>>([]);
 
-  const { items, subtotal, shipping, tax, total, discount, couponCode, clearCart } = useCartStore();
+  const { items, subtotal, shipping, tax, total, discount, couponCode, clearCart, applyCoupon, removeCoupon } = useCartStore();
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   useEffect(() => setMounted(true), []);
+
+  // Fetch saved addresses to auto-fill
+  useEffect(() => {
+    if (!mounted) return;
+    fetch("/api/user/addresses", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.data?.length > 0) {
+          setSavedAddresses(data.data);
+          // Auto-fill default address
+          const def = data.data.find((a: { isDefault: boolean }) => a.isDefault) ?? data.data[0];
+          if (def) {
+            setValue("fullName", def.fullName);
+            setValue("phone", def.phone);
+            setValue("addressLine1", def.addressLine1);
+            setValue("addressLine2", def.addressLine2 ?? "");
+            setValue("city", def.city);
+            setValue("state", def.state);
+            setValue("postalCode", def.postalCode);
+          }
+        }
+      })
+      .catch(() => { /* silent */ });
+  }, [mounted]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const safeItems = mounted ? items : [];
   const sub = mounted ? subtotal() : 0;
@@ -49,11 +81,35 @@ export function CheckoutClient() {
   const creditsDiscount = 0; // Credits system available after account setup
   const finalTotal = mounted ? Math.max(0, total() - creditsDiscount) : 0;
 
-  const { register, handleSubmit, formState: { errors }, getValues } = useForm<AddressForm>({
+  const { register, handleSubmit, formState: { errors }, getValues, setValue } = useForm<AddressForm>({
     resolver: zodResolver(addressSchema),
   });
 
   const onAddressSubmit = () => setStep("payment");
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput.trim(), cartTotal: sub }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        applyCoupon(data.data.code, data.data.discountAmount);
+        toast.success(data.message ?? "Coupon applied!");
+        setCouponInput("");
+      } else {
+        toast.error(data.error ?? "Invalid coupon");
+      }
+    } catch {
+      toast.error("Failed to apply coupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     setIsPlacing(true);
@@ -62,6 +118,7 @@ export function CheckoutClient() {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           items: safeItems.map((i) => ({
             productId: i.product.id,
@@ -164,7 +221,7 @@ export function CheckoutClient() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-xl font-black tracking-widest text-neutral-900">
-              RAMZAN
+              MARQET
             </Link>
             {/* Step indicator */}
             <div className="flex items-center gap-2">
@@ -200,6 +257,48 @@ export function CheckoutClient() {
                     <Truck className="h-5 w-5 text-amber-500" />
                     Shipping Address
                   </h2>
+
+                  {/* Saved addresses quick-select */}
+                  {savedAddresses.length > 0 && (
+                    <div className="mb-5">
+                      <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">
+                        <MapPin className="inline h-3.5 w-3.5 mr-1" />
+                        Saved Addresses
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        {savedAddresses.map((addr) => (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => {
+                              setValue("fullName", addr.fullName);
+                              setValue("phone", addr.phone);
+                              setValue("addressLine1", addr.addressLine1);
+                              setValue("addressLine2", addr.addressLine2 ?? "");
+                              setValue("city", addr.city);
+                              setValue("state", addr.state);
+                              setValue("postalCode", addr.postalCode);
+                              toast.success("Address filled in");
+                            }}
+                            className="flex items-start gap-3 rounded-xl border border-neutral-200 p-3 text-left hover:border-amber-400 hover:bg-amber-50 transition-all"
+                          >
+                            <MapPin className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-neutral-900">
+                                {addr.fullName}
+                                {addr.isDefault && <span className="ml-2 text-xs text-green-600 font-normal">Default</span>}
+                              </p>
+                              <p className="text-xs text-neutral-500 truncate">
+                                {addr.addressLine1}, {addr.city}, {addr.state}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-neutral-400 mt-2">Or fill manually below:</p>
+                      <Separator className="mt-3 mb-4" />
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input label="Full Name" error={errors.fullName?.message} {...register("fullName")} placeholder="Muhammad Ali" />
                     <Input label="Phone" error={errors.phone?.message} {...register("phone")} placeholder="+92 300 1234567" />
@@ -308,6 +407,30 @@ export function CheckoutClient() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* Coupon input */}
+              <div className="px-5 pb-4 border-t border-neutral-50">
+                <p className="text-xs font-semibold text-neutral-600 mb-2 mt-3">Have a coupon?</p>
+                {couponCode ? (
+                  <div className="flex items-center justify-between rounded-lg bg-green-50 border border-green-200 px-3 py-2">
+                    <span className="text-sm font-semibold text-green-700 font-mono">{couponCode}</span>
+                    <button onClick={removeCoupon} className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                      placeholder="Enter code"
+                      className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-neutral-400"
+                    />
+                    <Button size="sm" variant="outline" onClick={handleApplyCoupon} isLoading={couponLoading} className="flex-shrink-0">
+                      Apply
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Totals */}

@@ -13,7 +13,7 @@ const USER_PROTECTED = [
 // Routes that require admin role
 const ADMIN_PROTECTED = ["/admin"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ─── Admin protected routes ───────────────────────────────────────────────

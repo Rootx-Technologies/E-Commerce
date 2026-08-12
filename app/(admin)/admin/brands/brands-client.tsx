@@ -8,6 +8,7 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { Modal } from "@/components/admin/modal";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { FormField, Input } from "@/components/admin/form-field";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 interface Brand {
   id: string;
@@ -153,9 +154,13 @@ export function AdminBrandsClient() {
           <FormField label="Slug" required>
             <Input value={form.slug} onChange={(e) => setF("slug", e.target.value)} placeholder="nike" />
           </FormField>
-          <FormField label="Logo URL" hint="Brand logo image URL">
-            <Input value={form.logo} onChange={(e) => setF("logo", e.target.value)} placeholder="https://..." />
-          </FormField>
+          <ImageUploader
+            label="Brand Logo"
+            hint="PNG with transparent background recommended"
+            folder="marqet/brands"
+            value={form.logo}
+            onChange={(url) => setF("logo", url)}
+          />
         </div>
         <div className="mt-5 flex justify-end gap-3">
           <button onClick={() => setModalOpen(false)} className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">Cancel</button>

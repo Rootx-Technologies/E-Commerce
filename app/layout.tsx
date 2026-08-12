@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SearchModal } from "@/components/layout/search-modal";
 import { Toaster } from "react-hot-toast";
+import { StoreLayout } from "@/components/layout/store-layout";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
 
 const geist = Geist({
@@ -57,11 +54,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`} data-scroll-behavior="smooth">
       <body className="min-h-full flex flex-col bg-white text-neutral-900">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <CartDrawer />
-        <SearchModal />
+        <StoreLayout>
+          {children}
+        </StoreLayout>
         <Toaster
           position="bottom-right"
           toastOptions={{

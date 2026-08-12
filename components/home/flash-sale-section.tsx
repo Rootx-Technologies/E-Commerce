@@ -72,11 +72,13 @@ export function FlashSaleSection({ products, endTime }: FlashSaleSectionProps) {
           </div>
         </div>
 
-        {/* Products — horizontal scroll on mobile */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+        {/* Products */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 items-stretch">
           {products.slice(0, 5).map((product) => (
-            <div key={product.id} className="bg-neutral-900 rounded-xl p-2 sm:p-3">
-              <ProductCard product={product} />
+            <div key={product.id} className="bg-neutral-900 rounded-xl p-2 sm:p-3 flex flex-col">
+              <div className="flex-1">
+                <ProductCard product={product} />
+              </div>
             </div>
           ))}
         </div>

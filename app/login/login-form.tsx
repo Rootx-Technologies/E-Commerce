@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/auth.store";
+import { useWishlistStore } from "@/store/wishlist.store";
 import { SITE_NAME } from "@/lib/constants";
 import type { User } from "@/types";
 
@@ -14,6 +15,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/";
   const setUser = useAuthStore((s) => s.setUser);
+  const syncWishlist = useWishlistStore((s) => s.syncFromDB);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +40,8 @@ export function LoginForm() {
       if (data.success) {
         setUser(data.data.user as User, data.data.token);
         toast.success("Welcome back!");
-        // Full reload ensures server cookie + Zustand store both sync immediately
+        // Sync wishlist from DB after login
+        await syncWishlist();
         window.location.href = from;
       } else {
         toast.error(data.error ?? "Login failed");

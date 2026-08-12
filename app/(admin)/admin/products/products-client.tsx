@@ -11,6 +11,7 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { Modal } from "@/components/admin/modal";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { FormField, Input, Select, Textarea } from "@/components/admin/form-field";
+import { ImageUploader } from "@/components/admin/image-uploader";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 interface Product {
@@ -42,6 +43,7 @@ const EMPTY_FORM = {
   comparePrice: "", categoryId: "", brandId: "", tags: "",
   stock: "0", isFeatured: false, isNew: true,
   isBestSeller: false, isTrending: false, isActive: true,
+  imageUrl: "",
 };
 
 export function AdminProductsClient() {
@@ -106,6 +108,7 @@ export function AdminProductsClient() {
       stock: String(p.stock),
       isFeatured: p.isFeatured, isNew: p.isNew,
       isBestSeller: p.isBestSeller, isTrending: p.isTrending, isActive: p.isActive,
+      imageUrl: p.images?.[0]?.url ?? "",
     });
     setModalOpen(true);
   }
@@ -122,6 +125,7 @@ export function AdminProductsClient() {
       comparePrice: form.comparePrice ? Number(form.comparePrice) : null,
       stock: Number(form.stock),
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      images: form.imageUrl ? [{ url: form.imageUrl, alt: form.name, isPrimary: true }] : undefined,
     };
     const res = editTarget
       ? await updateProduct(editTarget.id, payload)
@@ -325,6 +329,17 @@ export function AdminProductsClient() {
           <FormField label="Tags" hint="Comma separated: shirt, cotton, casual">
             <Input value={form.tags} onChange={(e) => setF("tags", e.target.value)} placeholder="shirt, cotton, casual" />
           </FormField>
+
+          {/* Primary Image */}
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="Product Image"
+              hint="Primary image"
+              folder="marqet/products"
+              value={form.imageUrl ?? ""}
+              onChange={(url) => setF("imageUrl", url)}
+            />
+          </div>
 
           {/* Toggles */}
           <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-3">

@@ -8,6 +8,7 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { Modal } from "@/components/admin/modal";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { FormField, Input, Select, Textarea } from "@/components/admin/form-field";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 interface Category {
   id: string;
@@ -194,10 +195,12 @@ export function AdminCategoriesClient() {
           <FormField label="Slug" required>
             <Input value={form.slug} onChange={(e) => setF("slug", e.target.value)} placeholder="mens-clothing" />
           </FormField>
-          <FormField label="Image URL">
-            <Input value={form.image} onChange={(e) => setF("image", e.target.value)} placeholder="https://..." />
-          </FormField>
-          <FormField label="Description">
+          <ImageUploader
+            label="Category Image"
+            folder="marqet/categories"
+            value={form.image}
+            onChange={(url) => setF("image", url)}
+          />          <FormField label="Description">
             <Textarea rows={2} value={form.description} onChange={(e) => setF("description", e.target.value)} placeholder="Category description..." />
           </FormField>
           <FormField label="Parent Category" hint="Select a parent to create a sub-category">
