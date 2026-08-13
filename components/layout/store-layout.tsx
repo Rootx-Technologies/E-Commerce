@@ -6,6 +6,8 @@ import { Footer } from "./footer";
 import { CartDrawer } from "./cart-drawer";
 import { SearchModal } from "./search-modal";
 import { PageTransition } from "./page-transition";
+import { QuickViewModal } from "@/components/products/quick-view-modal";
+import { CompareBar } from "@/components/products/compare-bar";
 
 export function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,6 +26,8 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
       <Footer />
       <CartDrawer />
       <SearchModal />
+      <QuickViewModal />
+      <CompareBar />
     </>
   );
 }

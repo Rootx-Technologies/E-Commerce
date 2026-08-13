@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw, CheckCircle, Loader2 } from "lucide-react";
+import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw, CheckCircle, Loader2, GitCompare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,10 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart.store";
 import { useWishlistStore } from "@/store/wishlist.store";
 import { useAuthStore } from "@/store/auth.store";
+import { useRecentlyViewedStore } from "@/store/recently-viewed.store";
+import { useCompareStore } from "@/store/compare.store";
+import { SizeGuide } from "@/components/products/size-guide";
+import { StockAlert } from "@/components/products/stock-alert";
 import { formatPrice, calculateDiscount, getInitials } from "@/lib/utils";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
@@ -53,8 +57,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const user = useAuthStore((s) => s.user);
+  const addToRecentlyViewed = useRecentlyViewedStore((s) => s.addItem);
+  const { toggleItem: toggleCompare, isInCompare } = useCompareStore();
+  const inCompare = isInCompare(product.id);
   const router = useRouter();
   const inWishlist = isInWishlist(product.id);
+
+  // Track this product as recently viewed
+  useEffect(() => {
+    addToRecentlyViewed(product as unknown as import("@/types").Product);
+  }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchReviews = useCallback(async () => {
     if (reviewsFetched) return;
@@ -284,9 +296,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-neutral-900">Size</h3>
-                <button className="text-xs text-amber-600 hover:text-amber-700">
-                  Size Guide
-                </button>
+                <SizeGuide type="clothing" />
               </div>
               <div className="flex flex-wrap gap-2">
                 {sizes.map((size) => (
@@ -407,6 +417,23 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <Heart className={`h-5 w-5 ${inWishlist ? "fill-current" : ""}`} />
             </Button>
           </div>
+
+          {/* Stock alert for out of stock */}
+          {product.stock === 0 && (
+            <StockAlert productId={product.id} productName={product.name} />
+          )}
+
+          {/* Compare button */}
+          <button
+            onClick={() => {
+              toggleCompare(product as unknown as import("@/types").Product);
+              toast.success(inCompare ? "Removed from compare" : "Added to compare! Click compare bar below.");
+            }}
+            className={`flex items-center gap-2 text-sm font-medium transition-colors ${inCompare ? "text-amber-600" : "text-neutral-500 hover:text-neutral-900"}`}
+          >
+            <GitCompare size={15} />
+            {inCompare ? "Remove from Compare" : "Add to Compare"}
+          </button>
 
           {/* Trust badges */}
           <div className="grid grid-cols-3 gap-3 pt-2">

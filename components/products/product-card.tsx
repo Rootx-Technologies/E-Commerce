@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { Heart, ShoppingBag, Star, Eye, GitCompare } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart.store";
 import { useWishlistStore } from "@/store/wishlist.store";
 import { useAuthStore } from "@/store/auth.store";
+import { useUIStore } from "@/store/ui.store";
+import { useCompareStore } from "@/store/compare.store";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
@@ -26,6 +28,8 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   const addItem = useCartStore((s) => s.addItem);
   const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const openQuickView = useUIStore((s) => s.openQuickView);
+  const { toggleItem: toggleCompare, isInCompare } = useCompareStore();
 
   useEffect(() => setMounted(true), []);
 
@@ -114,17 +118,42 @@ export function ProductCard({ product, className, priority = false }: ProductCar
             </div>
           )}
 
-          {/* Wishlist button — always visible on mobile, hover on desktop */}
-          <button
-            onClick={handleWishlist}
-            className={cn(
-              "absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-9 sm:w-9",
-              "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0",
-              inWishlist ? "bg-red-500 text-white" : "bg-white text-neutral-700 hover:bg-red-500 hover:text-white"
-            )}
-            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}>
-            <Heart className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", inWishlist && "fill-current")} />
-          </button>
+          {/* Wishlist + Quick View + Compare buttons */}
+          <div className="absolute right-2 top-2 flex flex-col gap-1.5">
+            <button
+              onClick={handleWishlist}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-9 sm:w-9",
+                "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0",
+                inWishlist ? "bg-red-500 text-white" : "bg-white text-neutral-700 hover:bg-red-500 hover:text-white"
+              )}
+              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}>
+              <Heart className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", inWishlist && "fill-current")} />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickView(product.slug); }}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md text-neutral-700 transition-all duration-200 sm:h-9 sm:w-9 hover:bg-neutral-900 hover:text-white",
+                "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-75"
+              )}
+              aria-label="Quick view">
+              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault(); e.stopPropagation();
+                toggleCompare(product);
+                toast.success(isInCompare(product.id) ? "Removed from compare" : "Added to compare!", { duration: 1500 });
+              }}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-9 sm:w-9",
+                "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-150",
+                isInCompare(product.id) ? "bg-amber-500 text-white" : "bg-white text-neutral-700 hover:bg-amber-500 hover:text-white"
+              )}
+              aria-label="Compare">
+              <GitCompare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
+          </div>
 
           {/* Add to cart — always visible on mobile */}
           <div className={cn(

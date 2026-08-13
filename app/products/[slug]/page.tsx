@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductGrid } from "@/components/products/product-grid";
 import { SectionHeader } from "@/components/home/section-header";
+import { RecentlyViewed } from "@/components/products/recently-viewed";
 import type { Product } from "@/types";
 
 interface ProductPageProps {
@@ -77,6 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
       )}
+      <RecentlyViewed excludeId={product.id} />
     </div>
   );
 }
