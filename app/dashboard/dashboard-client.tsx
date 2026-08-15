@@ -193,8 +193,13 @@ export function DashboardClient() {
           <aside className="lg:w-72 flex-shrink-0">
             <div className="rounded-2xl bg-white border border-neutral-100 p-6 mb-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white text-lg font-bold flex-shrink-0">
-                  {displayInitials}
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white text-lg font-bold flex-shrink-0 overflow-hidden">
+                  {user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    displayInitials
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-neutral-900 truncate">{displayName}</p>

@@ -147,8 +147,13 @@ export function Header() {
                     onClick={() => setUserMenuOpen((v) => !v)}
                     className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900 text-white text-xs font-bold">
-                      {getInitials(user.name)}
+                    <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900 text-white text-xs font-bold overflow-hidden">
+                      {user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
+                      ) : (
+                        getInitials(user.name)
+                      )}
                     </div>
                     <span className="max-w-[90px] truncate">{user.name.split(" ")[0]}</span>
                     <ChevronDown size={14} className={cn("transition-transform", userMenuOpen && "rotate-180")} />
