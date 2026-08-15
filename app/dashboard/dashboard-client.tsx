@@ -68,6 +68,7 @@ export function DashboardClient() {
   const [addrLoading, setAddrLoading] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: "", currentPassword: "", newPassword: "", confirmPassword: "" });
   const [profileSaving, setProfileSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [showAddrForm, setShowAddrForm] = useState(false);
   const [addrForm, setAddrForm] = useState({ fullName: "", phone: "", addressLine1: "", addressLine2: "", city: "", state: "", postalCode: "", country: "Pakistan", isDefault: false });
   const [addrSaving, setAddrSaving] = useState(false);
@@ -416,6 +417,39 @@ export function DashboardClient() {
                     <h3 className="font-semibold text-neutral-900">Profile Information</h3>
                   </div>
                   <form onSubmit={handleProfileSave} className="space-y-4">
+                    {/* Avatar upload */}
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="h-16 w-16 rounded-full bg-neutral-900 text-white flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0">
+                          {user?.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.image} alt={user?.name ?? ""} className="h-full w-full object-cover" />
+                          ) : (
+                            <span>{displayInitials}</span>
+                          )}
+                        </div>
+                        {avatarUploading && (
+                          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                            <Loader2 size={18} className="animate-spin text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="cursor-pointer">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
+                            📷 Change Photo
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            className="hidden"
+                            onChange={handleAvatarUpload}
+                            disabled={avatarUploading}
+                          />
+                        </label>
+                        <p className="text-xs text-neutral-400 mt-1">JPG, PNG, WebP — Max 3MB</p>
+                      </div>
+                    </div>
                     <div>
                       <label className="text-sm font-medium text-neutral-700 block mb-1">Full Name</label>
                       <input value={profileForm.name} onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))}

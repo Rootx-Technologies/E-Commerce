@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
 
   try {
     const body = await request.json();
-    const { name, currentPassword, newPassword } = body;
+    const { name, currentPassword, newPassword, image } = body;
 
     const user = await db.user.findUnique({ where: { id: auth.userId } });
     if (!user) {
@@ -58,6 +58,11 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     // Update name
     if (name?.trim()) {
       updateData.name = name.trim();
+    }
+
+    // Update profile image
+    if (image !== undefined) {
+      updateData.image = image || null;
     }
 
     // Update password
