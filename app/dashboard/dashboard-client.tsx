@@ -128,6 +128,33 @@ export function DashboardClient() {
     finally { setCancellingId(null); }
   }
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/user/profile/image", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.data.user, data.data.token);
+        toast.success("Profile picture updated!");
+      } else {
+        toast.error(data.error ?? "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed. Try again.");
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = "";
+    }
+  }
+
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
     if (profileForm.newPassword && profileForm.newPassword !== profileForm.confirmPassword) {
