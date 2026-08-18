@@ -55,7 +55,10 @@ export default async function HomePage() {
       orderBy: { createdAt: "desc" },
       include: { images: true, variants: true, category: true, brand: true },
     }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
+    db.category.findMany({
+      where: { parentId: null },
+      orderBy: { createdAt: "asc" },
+    }),
     db.brand.findMany({ orderBy: { name: "asc" } }),
     db.banner.findMany({
       where: { isActive: true },

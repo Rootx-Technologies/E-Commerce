@@ -1,21 +1,353 @@
 /**
- * Prisma Seed Script
+ * Prisma Seed Script — Fresh 5 Main Categories & Subcategories + New Products
  * Run: npx tsx prisma/seed.ts
  */
 
-import "dotenv/config";
+import fs from "fs";
+import path from "path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 import bcrypt from "bcryptjs";
 
-const connectionString = process.env.DATABASE_URL ?? "";
-const adapter = new PrismaPg({ connectionString });
+let dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  const envPath = path.join(process.cwd(), ".env.local");
+  if (fs.existsSync(envPath)) {
+    const content = fs.readFileSync(envPath, "utf-8");
+    const match = content.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) dbUrl = match[1];
+  }
+}
+if (!dbUrl) {
+  const envPath = path.join(process.cwd(), ".env");
+  if (fs.existsSync(envPath)) {
+    const content = fs.readFileSync(envPath, "utf-8");
+    const match = content.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) dbUrl = match[1];
+  }
+}
+
+const adapter = new PrismaPg({ connectionString: dbUrl ?? "" });
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
-  console.log("🌱 Seeding database...\n");
+const MAIN_CATEGORIES_TREE = [
+  {
+    name: "Clothing",
+    slug: "clothing",
+    image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=80",
+    description: "Premium fashion for Men, Women and Kids",
+    subs: [
+      { name: "Men",   slug: "clothing-men",   image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=400&q=80" },
+      { name: "Women", slug: "clothing-women", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80" },
+      { name: "Kids",  slug: "clothing-kids",  image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&q=80" },
+    ],
+  },
+  {
+    name: "Shoes",
+    slug: "shoes",
+    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80",
+    description: "Footwear collection for Men, Women and Kids",
+    subs: [
+      { name: "Men",   slug: "shoes-men",   image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" },
+      { name: "Women", slug: "shoes-women", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80" },
+      { name: "Kids",  slug: "shoes-kids",  image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&q=80" },
+    ],
+  },
+  {
+    name: "Bags",
+    slug: "bags",
+    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80",
+    description: "Handbags, Backpacks and Wallets",
+    subs: [
+      { name: "Handbags",  slug: "bags-handbags",  image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80" },
+      { name: "Backpacks", slug: "bags-backpacks", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80" },
+      { name: "Wallets",   slug: "bags-wallets",   image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&q=80" },
+    ],
+  },
+  {
+    name: "Accessories",
+    slug: "accessories",
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80",
+    description: "Caps, Belts, Sunglasses and Jewelry",
+    subs: [
+      { name: "Caps",       slug: "accessories-caps",       image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&q=80" },
+      { name: "Belts",      slug: "accessories-belts",      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80" },
+      { name: "Sunglasses", slug: "accessories-sunglasses", image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&q=80" },
+      { name: "Jewelry",    slug: "accessories-jewelry",    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80" },
+    ],
+  },
+  {
+    name: "Perfumes",
+    slug: "perfumes",
+    image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80",
+    description: "Luxury fragrances for Men, Women and Unisex",
+    subs: [
+      { name: "Men",    slug: "perfumes-men",    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400&q=80" },
+      { name: "Women",  slug: "perfumes-women",  image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80" },
+      { name: "Unisex", slug: "perfumes-unisex", image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&q=80" },
+    ],
+  },
+];
 
-  // ─── Admin User ────────────────────────────────────────────────────────────
+const BRANDS = [
+  { name: "Khaadi",            slug: "khaadi" },
+  { name: "Gul Ahmed",         slug: "gul-ahmed" },
+  { name: "Bonanza Satrangi",  slug: "bonanza-satrangi" },
+  { name: "Sapphire",          slug: "sapphire" },
+  { name: "Alkaram",           slug: "alkaram" },
+  { name: "Sana Safinaz",      slug: "sana-safinaz" },
+  { name: "Zara",              slug: "zara" },
+  { name: "Nike",              slug: "nike" },
+  { name: "Adidas",            slug: "adidas" },
+];
+
+const FRESH_PRODUCTS = [
+  // Clothing - Men
+  {
+    name: "Men's Designer Embroidered Kurta",
+    slug: "mens-designer-embroidered-kurta",
+    description: "Premium cotton designer kurta crafted with intricate embroidery for formal and festive occasions.",
+    price: 3800, comparePrice: 5200,
+    categorySlug: "clothing-men", brandSlug: "khaadi",
+    tags: ["kurta", "men", "festive", "cotton"],
+    stock: 45, rating: 4.8, reviewCount: 124,
+    isFeatured: true, isNew: true, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80", alt: "Men's Kurta", isPrimary: true }],
+  },
+  {
+    name: "Slim Fit Casual Cotton Shirt",
+    slug: "slim-fit-casual-cotton-shirt",
+    description: "Classic slim fit button-up cotton shirt designed for everyday modern style.",
+    price: 2900, comparePrice: 4000,
+    categorySlug: "clothing-men", brandSlug: "zara",
+    tags: ["shirt", "men", "casual"],
+    stock: 50, rating: 4.6, reviewCount: 88,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1626497764746-6dc36546b388?w=600&q=80", alt: "Casual Shirt", isPrimary: true }],
+  },
+
+  // Clothing - Women
+  {
+    name: "Embroidered Chiffon 3-Piece Suit",
+    slug: "embroidered-chiffon-3-piece-suit",
+    description: "Luxury embroidered 3-piece chiffon lawn suit with hand-printed silk dupatta.",
+    price: 6800, comparePrice: 9500,
+    categorySlug: "clothing-women", brandSlug: "gul-ahmed",
+    tags: ["suit", "chiffon", "women", "lawn"],
+    stock: 30, rating: 4.9, reviewCount: 210,
+    isFeatured: true, isNew: true, isBestSeller: true, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80", alt: "Chiffon Suit", isPrimary: true }],
+  },
+  {
+    name: "Handwoven Kashmiri Shawl",
+    slug: "handwoven-kashmiri-shawl",
+    description: "Elegant traditional handwoven Kashmiri wool shawl with rich floral embroidery.",
+    price: 5200, comparePrice: 7500,
+    categorySlug: "clothing-women", brandSlug: "sana-safinaz",
+    tags: ["shawl", "women", "kashmiri"],
+    stock: 25, rating: 4.7, reviewCount: 95,
+    isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80", alt: "Kashmiri Shawl", isPrimary: true }],
+  },
+
+  // Clothing - Kids
+  {
+    name: "Kids Festive Cotton Kurta Set",
+    slug: "kids-festive-cotton-kurta-set",
+    description: "Soft breathable cotton festive kurta and pajama set for boys.",
+    price: 2400, comparePrice: 3200,
+    categorySlug: "clothing-kids", brandSlug: "bonanza-satrangi",
+    tags: ["kids", "kurta", "festive"],
+    stock: 40, rating: 4.7, reviewCount: 56,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=600&q=80", alt: "Kids Kurta Set", isPrimary: true }],
+  },
+
+  // Shoes - Men
+  {
+    name: "Handcrafted Leather Oxford Shoes",
+    slug: "handcrafted-leather-oxford-shoes",
+    description: "Genuine leather Oxford formal shoes with anti-slip cushioned sole.",
+    price: 9800, comparePrice: 14000,
+    categorySlug: "shoes-men", brandSlug: "zara",
+    tags: ["shoes", "leather", "oxford", "formal"],
+    stock: 20, rating: 4.8, reviewCount: 164,
+    isFeatured: true, isNew: false, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&q=80", alt: "Oxford Shoes", isPrimary: true }],
+  },
+  {
+    name: "Pro Performance Running Sneakers",
+    slug: "pro-performance-running-sneakers",
+    description: "High-performance breathable running shoes with ultra-boost comfort response.",
+    price: 8600, comparePrice: 12000,
+    categorySlug: "shoes-men", brandSlug: "nike",
+    tags: ["sneakers", "running", "sports"],
+    stock: 35, rating: 4.9, reviewCount: 420,
+    isFeatured: true, isNew: true, isBestSeller: false, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80", alt: "Running Sneakers", isPrimary: true }],
+  },
+
+  // Shoes - Women
+  {
+    name: "Embellished Traditional Khussa",
+    slug: "embellished-traditional-khussa",
+    description: "Handmade velvet embroidered traditional khussa with comfortable inner lining.",
+    price: 3400, comparePrice: 4800,
+    categorySlug: "shoes-women", brandSlug: "alkaram",
+    tags: ["khussa", "women", "shoes", "traditional"],
+    stock: 40, rating: 4.6, reviewCount: 112,
+    isFeatured: false, isNew: true, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80", alt: "Embellished Khussa", isPrimary: true }],
+  },
+
+  // Shoes - Kids
+  {
+    name: "Kids Light-Up Sports Sneakers",
+    slug: "kids-light-up-sports-sneakers",
+    description: "Durable and lightweight sport sneakers with LED lights for active kids.",
+    price: 3200, comparePrice: 4500,
+    categorySlug: "shoes-kids", brandSlug: "adidas",
+    tags: ["kids", "sneakers", "sports"],
+    stock: 30, rating: 4.5, reviewCount: 68,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=600&q=80", alt: "Kids Sneakers", isPrimary: true }],
+  },
+
+  // Bags - Handbags
+  {
+    name: "Italian Leather Designer Tote Handbag",
+    slug: "italian-leather-designer-tote-handbag",
+    description: "Luxurious genuine leather tote bag with gold-plated metallic hardware.",
+    price: 12800, comparePrice: 17500,
+    categorySlug: "bags-handbags", brandSlug: "zara",
+    tags: ["handbag", "leather", "women", "tote"],
+    stock: 18, rating: 4.9, reviewCount: 155,
+    isFeatured: true, isNew: true, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80", alt: "Leather Handbag", isPrimary: true }],
+  },
+
+  // Bags - Backpacks
+  {
+    name: "Water-Resistant Laptop Backpack",
+    slug: "water-resistant-laptop-backpack",
+    description: "Ergonomic 30L laptop travel backpack with USB charging port and anti-theft pocket.",
+    price: 5600, comparePrice: 7800,
+    categorySlug: "bags-backpacks", brandSlug: "nike",
+    tags: ["backpack", "laptop", "bag"],
+    stock: 28, rating: 4.7, reviewCount: 190,
+    isFeatured: false, isNew: false, isBestSeller: true, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80", alt: "Laptop Backpack", isPrimary: true }],
+  },
+
+  // Bags - Wallets
+  {
+    name: "Bifold Genuine Leather Wallet",
+    slug: "bifold-genuine-leather-wallet",
+    description: "Slim RFID-blocking genuine cowhide leather wallet with multiple card slots.",
+    price: 2400, comparePrice: 3500,
+    categorySlug: "bags-wallets", brandSlug: "zara",
+    tags: ["wallet", "leather", "accessories"],
+    stock: 55, rating: 4.8, reviewCount: 230,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&q=80", alt: "Leather Wallet", isPrimary: true }],
+  },
+
+  // Accessories - Caps
+  {
+    name: "Adjustable Embroidered Baseball Cap",
+    slug: "adjustable-embroidered-baseball-cap",
+    description: "Classic 100% cotton adjustable baseball cap with breathable eyelets.",
+    price: 1800, comparePrice: 2600,
+    categorySlug: "accessories-caps", brandSlug: "nike",
+    tags: ["cap", "baseball", "accessories"],
+    stock: 60, rating: 4.5, reviewCount: 78,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80", alt: "Baseball Cap", isPrimary: true }],
+  },
+
+  // Accessories - Belts
+  {
+    name: "Reversible Genuine Leather Belt",
+    slug: "reversible-genuine-leather-belt",
+    description: "Premium reversible black and brown leather belt with polished alloy buckle.",
+    price: 2600, comparePrice: 3800,
+    categorySlug: "accessories-belts", brandSlug: "zara",
+    tags: ["belt", "leather", "accessories"],
+    stock: 40, rating: 4.6, reviewCount: 104,
+    isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80", alt: "Leather Belt", isPrimary: true }],
+  },
+
+  // Accessories - Sunglasses
+  {
+    name: "Polarized Classic Aviator Sunglasses",
+    slug: "polarized-classic-aviator-sunglasses",
+    description: "UV400 protection polarized classic metal frame aviator sunglasses.",
+    price: 4500, comparePrice: 6500,
+    categorySlug: "accessories-sunglasses", brandSlug: "zara",
+    tags: ["sunglasses", "aviator", "accessories"],
+    stock: 35, rating: 4.8, reviewCount: 142,
+    isFeatured: true, isNew: true, isBestSeller: false, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&q=80", alt: "Aviator Sunglasses", isPrimary: true }],
+  },
+
+  // Accessories - Jewelry
+  {
+    name: "18K Gold Plated Crystal Heart Ring Set",
+    slug: "18k-gold-plated-crystal-heart-ring-set",
+    description: "Exquisite 18k gold-plated stackable ring set with sparkling zirconia crystals.",
+    price: 3900, comparePrice: 5800,
+    categorySlug: "accessories-jewelry", brandSlug: "sapphire",
+    tags: ["jewelry", "ring", "gold", "women"],
+    stock: 30, rating: 4.9, reviewCount: 188,
+    isFeatured: true, isNew: true, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80", alt: "Gold Ring Set", isPrimary: true }],
+  },
+
+  // Perfumes - Men
+  {
+    name: "Royal Oud Intense EDP 100ml",
+    slug: "royal-oud-intense-edp-100ml",
+    description: "Sophisticated long-lasting wood and spice EDP cologne for men.",
+    price: 5800, comparePrice: 8200,
+    categorySlug: "perfumes-men", brandSlug: "alkaram",
+    tags: ["perfume", "oud", "men", "fragrance"],
+    stock: 45, rating: 4.9, reviewCount: 290,
+    isFeatured: true, isNew: true, isBestSeller: true, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80", alt: "Royal Oud Perfume", isPrimary: true }],
+  },
+
+  // Perfumes - Women
+  {
+    name: "Velvet Rose & Jasmine EDP 100ml",
+    slug: "velvet-rose-jasmine-edp-100ml",
+    description: "Enchanting floral oriental EDP fragrance infused with wild rose and vanilla.",
+    price: 5200, comparePrice: 7500,
+    categorySlug: "perfumes-women", brandSlug: "sapphire",
+    tags: ["perfume", "rose", "women", "fragrance"],
+    stock: 40, rating: 4.8, reviewCount: 215,
+    isFeatured: true, isNew: false, isBestSeller: true, isTrending: false,
+    images: [{ url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80", alt: "Velvet Rose Perfume", isPrimary: true }],
+  },
+
+  // Perfumes - Unisex
+  {
+    name: "Smokey Amber & White Musk Cologne",
+    slug: "smokey-amber-white-musk-cologne",
+    description: "Luxurious oriental unisex fragrance with warm amber and velvety musk notes.",
+    price: 6200, comparePrice: 9000,
+    categorySlug: "perfumes-unisex", brandSlug: "khaadi",
+    tags: ["perfume", "amber", "unisex", "fragrance"],
+    stock: 35, rating: 4.7, reviewCount: 175,
+    isFeatured: false, isNew: true, isBestSeller: false, isTrending: true,
+    images: [{ url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80", alt: "Amber Cologne", isPrimary: true }],
+  },
+];
+
+async function main() {
+  console.log("🌱 Clearing old database items & Seeding fresh data...\n");
+
+  // 1. Admin User
   const adminPassword = await bcrypt.hash("Admin@123", 12);
   const admin = await prisma.user.upsert({
     where: { email: "admin@faizan.com" },
@@ -29,323 +361,66 @@ async function main() {
       referralCode: "ADMIN001",
     },
   });
-  console.log("✅ Admin user:", admin.email);
+  console.log("✅ Admin user verified:", admin.email);
 
-  // ─── Categories ────────────────────────────────────────────────────────────
-  const categoriesData = [
-    { name: "Men's Fashion",      slug: "mens-fashion",      image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=400&q=80",  description: "Shirts, kurtas, trousers and more" },
-    { name: "Women's Fashion",    slug: "womens-fashion",    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80",  description: "Dresses, suits, shalwar kameez" },
-    { name: "Electronics",        slug: "electronics",       image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80",  description: "Phones, laptops, accessories" },
-    { name: "Footwear",           slug: "footwear",          image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",    description: "Formal, casual and sports footwear" },
-    { name: "Bags & Accessories", slug: "bags-accessories",  image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80",    description: "Bags, wallets, belts" },
-    { name: "Fragrances",         slug: "fragrances",        image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80",  description: "Perfumes and fragrances" },
-    { name: "Watches",            slug: "watches",           image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80",  description: "Luxury and casual watches" },
-    { name: "Home & Living",      slug: "home-living",       image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80",    description: "Home decor and lifestyle" },
-    { name: "Kids",               slug: "kids",              image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&q=80",  description: "Clothing and toys for children" },
-  ];
+  // 2. Clear old database items (Reviews, OrderItems, WishlistItems, ProductImages, ProductVariants, Products, Categories)
+  await prisma.review.deleteMany({}).catch(() => {});
+  await prisma.orderItem.deleteMany({}).catch(() => {});
+  await prisma.wishlistItem.deleteMany({}).catch(() => {});
+  await prisma.productImage.deleteMany({}).catch(() => {});
+  await prisma.productVariant.deleteMany({}).catch(() => {});
+  await prisma.product.deleteMany({}).catch(() => {});
+  await prisma.category.deleteMany({}).catch(() => {});
+  console.log("🗑️ Cleared all old products & categories.");
 
-  const createdCats: Record<string, string> = {};
-  for (const cat of categoriesData) {
-    const c = await prisma.category.upsert({
-      where: { slug: cat.slug },
-      update: { name: cat.name, image: cat.image, description: cat.description },
-      create: cat,
+  // 3. Seed Brands
+  const createdBrandMap: Record<string, string> = {};
+  for (const b of BRANDS) {
+    const brand = await prisma.brand.upsert({
+      where: { slug: b.slug },
+      update: { name: b.name },
+      create: { name: b.name, slug: b.slug },
     });
-    createdCats[cat.slug] = c.id;
+    createdBrandMap[b.slug] = brand.id;
   }
-  console.log(`✅ ${categoriesData.length} categories seeded`);
+  console.log(`✅ ${BRANDS.length} brands ready.`);
 
-  // ─── Brands ────────────────────────────────────────────────────────────────
-  const brandsData = [
-    { name: "Khaadi",            slug: "khaadi" },
-    { name: "Gul Ahmed",         slug: "gul-ahmed" },
-    { name: "Bonanza Satrangi",  slug: "bonanza-satrangi" },
-    { name: "Sapphire",          slug: "sapphire" },
-    { name: "Alkaram",           slug: "alkaram" },
-    { name: "Sana Safinaz",      slug: "sana-safinaz" },
-    { name: "Zara",              slug: "zara" },
-    { name: "Samsung",           slug: "samsung" },
-    { name: "Apple",             slug: "apple" },
-    { name: "Nike",              slug: "nike" },
-    { name: "Adidas",            slug: "adidas" },
-  ];
-
-  const createdBrands: Record<string, string> = {};
-  for (const brand of brandsData) {
-    const b = await prisma.brand.upsert({
-      where: { slug: brand.slug },
-      update: {},
-      create: brand,
+  // 4. Seed 5 Main Categories + 16 Subcategories
+  const createdSubMap: Record<string, string> = {};
+  for (const mainCat of MAIN_CATEGORIES_TREE) {
+    const parent = await prisma.category.create({
+      data: {
+        name: mainCat.name,
+        slug: mainCat.slug,
+        image: mainCat.image,
+        description: mainCat.description,
+      },
     });
-    createdBrands[brand.slug] = b.id;
+
+    for (const sub of mainCat.subs) {
+      const child = await prisma.category.create({
+        data: {
+          name: sub.name,
+          slug: sub.slug,
+          image: sub.image,
+          parentId: parent.id,
+        },
+      });
+      createdSubMap[sub.slug] = child.id;
+    }
   }
-  console.log(`✅ ${brandsData.length} brands seeded`);
+  console.log("✅ 5 Main Categories & 16 Subcategories created.");
 
-  // ─── Products ─────────────────────────────────────────────────────────────
-  const productsData = [
-    {
-      name: "Premium Lawn Suit",
-      slug: "premium-lawn-suit",
-      description: "Premium quality lawn suit crafted with the finest materials for ultimate comfort and style.",
-      price: 3500, comparePrice: 5000,
-      categorySlug: "womens-fashion", brandSlug: "gul-ahmed",
-      tags: ["lawn", "suit", "women", "summer"],
-      stock: 38, rating: 4.8, reviewCount: 245,
-      isFeatured: true, isNew: true, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80", alt: "Premium Lawn Suit", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80", alt: "Premium Lawn Suit side view", isPrimary: false },
-      ],
-      variants: [
-        { size: "S", stock: 10 }, { size: "M", stock: 15 },
-        { size: "L", stock: 8 },  { size: "XL", stock: 5 },
-      ],
-    },
-    {
-      name: "Men's Casual Kurta",
-      slug: "mens-casual-kurta",
-      description: "Comfortable casual kurta perfect for everyday wear, made from premium cotton fabric.",
-      price: 2200, comparePrice: 3000,
-      categorySlug: "mens-fashion", brandSlug: "khaadi",
-      tags: ["kurta", "casual", "men", "cotton"],
-      stock: 55, rating: 4.6, reviewCount: 189,
-      isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80", alt: "Men's Casual Kurta", isPrimary: true },
-      ],
-      variants: [
-        { size: "S", stock: 12 }, { size: "M", stock: 18 },
-        { size: "L", stock: 15 }, { size: "XL", stock: 10 },
-      ],
-    },
-    {
-      name: "Smart Watch Pro",
-      slug: "smart-watch-pro",
-      description: "Advanced smartwatch with health monitoring, GPS, and 7-day battery life.",
-      price: 18500, comparePrice: 25000,
-      categorySlug: "electronics", brandSlug: "samsung",
-      tags: ["smartwatch", "electronics", "fitness", "wearable"],
-      stock: 25, rating: 4.7, reviewCount: 312,
-      isFeatured: false, isNew: false, isBestSeller: false, isTrending: true,
-      images: [
-        { url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", alt: "Smart Watch Pro", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=600&q=80", alt: "Smart Watch Pro side", isPrimary: false },
-      ],
-      variants: [],
-    },
-    {
-      name: "Running Sneakers",
-      slug: "running-sneakers",
-      description: "High-performance running sneakers with superior cushioning and breathable mesh upper.",
-      price: 8500, comparePrice: 12000,
-      categorySlug: "footwear", brandSlug: "nike",
-      tags: ["sneakers", "running", "sports", "shoes"],
-      stock: 42, rating: 4.9, reviewCount: 567,
-      isFeatured: true, isNew: false, isBestSeller: true, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80", alt: "Running Sneakers", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=600&q=80", alt: "Running Sneakers top view", isPrimary: false },
-      ],
-      variants: [
-        { size: "40", stock: 8 }, { size: "41", stock: 10 },
-        { size: "42", stock: 12 }, { size: "43", stock: 8 },
-        { size: "44", stock: 4 },
-      ],
-    },
-    {
-      name: "Leather Handbag",
-      slug: "leather-handbag",
-      description: "Elegant genuine leather handbag with multiple compartments and premium stitching.",
-      price: 12000, comparePrice: 16000,
-      categorySlug: "bags-accessories", brandSlug: "zara",
-      tags: ["handbag", "leather", "women", "accessories"],
-      stock: 20, rating: 4.5, reviewCount: 98,
-      isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80", alt: "Leather Handbag", isPrimary: true },
-      ],
-      variants: [],
-    },
-    {
-      name: "Oud Perfume 100ml",
-      slug: "oud-perfume-100ml",
-      description: "Luxurious oud-based fragrance with rich woody notes. Long-lasting 24-hour scent.",
-      price: 4500, comparePrice: 6000,
-      categorySlug: "fragrances", brandSlug: "alkaram",
-      tags: ["perfume", "oud", "fragrance", "luxury"],
-      stock: 60, rating: 4.8, reviewCount: 203,
-      isFeatured: false, isNew: false, isBestSeller: false, isTrending: true,
-      images: [
-        { url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80", alt: "Oud Perfume", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80", alt: "Oud Perfume bottle", isPrimary: false },
-      ],
-      variants: [],
-    },
-    {
-      name: "Wireless Earbuds",
-      slug: "wireless-earbuds",
-      description: "Premium wireless earbuds with active noise cancellation and 30-hour total battery life.",
-      price: 7500, comparePrice: 10000,
-      categorySlug: "electronics", brandSlug: "apple",
-      tags: ["earbuds", "wireless", "audio", "electronics"],
-      stock: 35, rating: 4.6, reviewCount: 445,
-      isFeatured: true, isNew: false, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80", alt: "Wireless Earbuds", isPrimary: true },
-      ],
-      variants: [],
-    },
-    {
-      name: "Embroidered Shawl",
-      slug: "embroidered-shawl",
-      description: "Beautifully embroidered kashmiri shawl, perfect for winter and formal occasions.",
-      price: 5500, comparePrice: 7500,
-      categorySlug: "womens-fashion", brandSlug: "sana-safinaz",
-      tags: ["shawl", "embroidered", "women", "winter"],
-      stock: 30, rating: 4.7, reviewCount: 156,
-      isFeatured: false, isNew: true, isBestSeller: true, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80", alt: "Embroidered Shawl", isPrimary: true },
-      ],
-      variants: [],
-    },
-    {
-      name: "Denim Jacket",
-      slug: "denim-jacket",
-      description: "Classic denim jacket with modern fit. Versatile style for casual and semi-formal looks.",
-      price: 6500, comparePrice: 9000,
-      categorySlug: "mens-fashion", brandSlug: "zara",
-      tags: ["denim", "jacket", "men", "casual"],
-      stock: 28, rating: 4.4, reviewCount: 87,
-      isFeatured: false, isNew: false, isBestSeller: false, isTrending: true,
-      images: [
-        { url: "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=600&q=80", alt: "Denim Jacket", isPrimary: true },
-      ],
-      variants: [
-        { size: "S", stock: 6 }, { size: "M", stock: 10 },
-        { size: "L", stock: 8 }, { size: "XL", stock: 4 },
-      ],
-    },
-    {
-      name: "Luxury Watch",
-      slug: "luxury-watch",
-      description: "Swiss-inspired luxury timepiece with sapphire crystal glass and genuine leather strap.",
-      price: 45000, comparePrice: 60000,
-      categorySlug: "watches", brandSlug: "alkaram",
-      tags: ["watch", "luxury", "men", "accessories"],
-      stock: 12, rating: 4.9, reviewCount: 78,
-      isFeatured: true, isNew: false, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=600&q=80", alt: "Luxury Watch", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", alt: "Luxury Watch close up", isPrimary: false },
-      ],
-      variants: [],
-    },
-    {
-      name: "Silk Dupatta",
-      slug: "silk-dupatta",
-      description: "Pure silk dupatta with hand-printed floral patterns. Elegant and lightweight.",
-      price: 2800, comparePrice: 4000,
-      categorySlug: "womens-fashion", brandSlug: "gul-ahmed",
-      tags: ["dupatta", "silk", "women", "traditional"],
-      stock: 45, rating: 4.5, reviewCount: 134,
-      isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80", alt: "Silk Dupatta", isPrimary: true },
-      ],
-      variants: [],
-    },
-    {
-      name: "Formal Oxford Shoes",
-      slug: "formal-oxford-shoes",
-      description: "Classic Oxford shoes crafted from genuine leather. Perfect for office and formal events.",
-      price: 9500, comparePrice: 13000,
-      categorySlug: "footwear", brandSlug: "adidas",
-      tags: ["shoes", "formal", "oxford", "leather"],
-      stock: 22, rating: 4.6, reviewCount: 221,
-      isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&q=80", alt: "Formal Oxford Shoes", isPrimary: true },
-      ],
-      variants: [
-        { size: "40", stock: 4 }, { size: "41", stock: 6 },
-        { size: "42", stock: 6 }, { size: "43", stock: 4 },
-        { size: "44", stock: 2 },
-      ],
-    },
-    {
-      name: "Unstitched Fabric 3 Piece",
-      slug: "unstitched-fabric-3-piece",
-      description: "Premium unstitched lawn 3-piece suit with embroidered neckline. Ready to stitch.",
-      price: 4200, comparePrice: 6500,
-      categorySlug: "womens-fashion", brandSlug: "bonanza-satrangi",
-      tags: ["unstitched", "lawn", "3piece", "women"],
-      stock: 50, rating: 4.7, reviewCount: 178,
-      isFeatured: true, isNew: true, isBestSeller: false, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&q=80", alt: "Unstitched Fabric 3 Piece", isPrimary: true },
-      ],
-      variants: [],
-    },
-    {
-      name: "Polo T-Shirt",
-      slug: "polo-t-shirt",
-      description: "Classic polo t-shirt in premium pique cotton. Available in multiple colors.",
-      price: 1800, comparePrice: 2500,
-      categorySlug: "mens-fashion", brandSlug: "adidas",
-      tags: ["polo", "tshirt", "men", "casual", "cotton"],
-      stock: 80, rating: 4.3, reviewCount: 342,
-      isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
-      images: [
-        { url: "https://images.unsplash.com/photo-1626497764746-6dc36546b388?w=600&q=80", alt: "Polo T-Shirt", isPrimary: true },
-      ],
-      variants: [
-        { size: "S", stock: 20 }, { size: "M", stock: 25 },
-        { size: "L", stock: 20 }, { size: "XL", stock: 15 },
-      ],
-    },
-    {
-      name: "Smartphone 128GB",
-      slug: "smartphone-128gb",
-      description: "Latest flagship smartphone with 50MP camera, 5G connectivity and 5000mAh battery.",
-      price: 65000, comparePrice: 80000,
-      categorySlug: "electronics", brandSlug: "samsung",
-      tags: ["smartphone", "5g", "samsung", "electronics"],
-      stock: 18, rating: 4.8, reviewCount: 523,
-      isFeatured: true, isNew: true, isBestSeller: false, isTrending: true,
-      images: [
-        { url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80", alt: "Smartphone 128GB", isPrimary: true },
-        { url: "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=600&q=80", alt: "Smartphone back", isPrimary: false },
-      ],
-      variants: [],
-    },
-    {
-      name: "Laptop Backpack",
-      slug: "laptop-backpack",
-      description: "Water-resistant laptop backpack with USB charging port and 30L capacity.",
-      price: 5500, comparePrice: 7000,
-      categorySlug: "bags-accessories", brandSlug: "nike",
-      tags: ["backpack", "laptop", "bag", "travel"],
-      stock: 35, rating: 4.5, reviewCount: 167,
-      isFeatured: false, isNew: false, isBestSeller: false, isTrending: true,
-      images: [
-        { url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80", alt: "Laptop Backpack", isPrimary: true },
-      ],
-      variants: [],
-    },
-  ];
+  // 5. Seed Fresh Products
+  let count = 0;
+  for (const p of FRESH_PRODUCTS) {
+    const categoryId = createdSubMap[p.categorySlug];
+    const brandId = createdBrandMap[p.brandSlug];
 
-  let created = 0;
-  let skipped = 0;
-
-  for (const p of productsData) {
-    const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
-    if (existing) { skipped++; continue; }
-
-    const categoryId = createdCats[p.categorySlug];
-    const brandId = createdBrands[p.brandSlug];
-
-    if (!categoryId) { console.warn(`⚠️  Category not found: ${p.categorySlug}`); continue; }
+    if (!categoryId) {
+      console.warn(`⚠️ Category not found for ${p.categorySlug}`);
+      continue;
+    }
 
     await prisma.product.create({
       data: {
@@ -372,25 +447,14 @@ async function main() {
             isPrimary: img.isPrimary,
           })),
         },
-        variants: {
-          create: p.variants.map((v) => ({
-            size: v.size,
-            stock: v.stock,
-          })),
-        },
       },
     });
-    created++;
+    count++;
   }
 
-  console.log(`✅ ${created} products seeded, ${skipped} already existed`);
-
+  console.log(`✅ ${count} fresh products seeded across all subcategories!`);
   console.log("\n─────────────────────────────────────");
-  console.log("✅ Seeding complete!");
-  console.log("\nAdmin Login:");
-  console.log("  URL:      http://localhost:3000/admin/login");
-  console.log("  Email:    admin@faizan.com");
-  console.log("  Password: Admin@123");
+  console.log("🎉 Database seeding complete!");
   console.log("─────────────────────────────────────\n");
 }
 

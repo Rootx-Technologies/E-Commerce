@@ -126,3 +126,8 @@ export type CreditTransaction = Prisma.CreditTransactionModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model SiteSetting
+ * 
+ */
+export type SiteSetting = Prisma.SiteSettingModel

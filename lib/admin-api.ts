@@ -81,3 +81,8 @@ export const fetchAdminBanners = () => req("GET", "/banners");
 export const createBanner = (data: unknown) => req("POST", "/banners", data);
 export const updateBanner = (id: string, data: unknown) => req("PATCH", `/banners/${id}`, data);
 export const deleteBanner = (id: string) => req("DELETE", `/banners/${id}`);
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+export const fetchAdminSettings = () => req("GET", "/settings");
+export const updateAdminSettings = (data: unknown) => req("PUT", "/settings", data);
+

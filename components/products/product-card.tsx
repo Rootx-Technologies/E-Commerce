@@ -73,10 +73,13 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-      className={cn("group relative", className)}>
-      <Link href={`/products/${product.slug}`} className="block rounded-[1.6rem] border border-neutral-200 bg-white/80 p-2 shadow-[0_20px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
-        {/* Image */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-neutral-100">
+      className={cn("group relative flex flex-col h-full", className)}>
+      <Link
+        href={`/products/${product.slug}`}
+        className="flex flex-col flex-1 h-full overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-neutral-300"
+      >
+        {/* Image - Full Width Edge-to-Edge */}
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 flex-shrink-0">
           {primaryImage && (
             <>
               {/* Primary image — fades out on hover */}
@@ -105,39 +108,39 @@ export function ProductCard({ product, className, priority = false }: ProductCar
           )}
 
           {/* Badges */}
-          <div className="absolute left-2 top-2 flex flex-col gap-1">
-            {product.isNew && <Badge variant="new" className="text-[9px] px-1.5 py-0.5">New</Badge>}
-            {product.isBestSeller && <Badge variant="default" className="text-[9px] px-1.5 py-0.5">Best Seller</Badge>}
-            {discount && discount > 0 && <Badge variant="sale" className="text-[9px] px-1.5 py-0.5">-{discount}%</Badge>}
+          <div className="absolute left-2.5 top-2.5 flex flex-col gap-1 z-10">
+            {product.isNew && <Badge variant="new" className="text-[9px] px-1.5 py-0.5 shadow-sm">New</Badge>}
+            {product.isBestSeller && <Badge variant="default" className="text-[9px] px-1.5 py-0.5 shadow-sm">Best Seller</Badge>}
+            {discount && discount > 0 && <Badge variant="sale" className="text-[9px] px-1.5 py-0.5 shadow-sm">-{discount}%</Badge>}
           </div>
 
           {/* Out of stock */}
           {product.stock === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm z-10">
               <span className="rounded-full bg-neutral-900 px-3 py-1 text-[10px] font-semibold text-white">Out of Stock</span>
             </div>
           )}
 
           {/* Wishlist + Quick View + Compare buttons */}
-          <div className="absolute right-2 top-2 flex flex-col gap-1.5">
+          <div className="absolute right-2.5 top-2.5 flex flex-col gap-1.5 z-10">
             <button
               onClick={handleWishlist}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-9 sm:w-9",
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-8.5 sm:w-8.5",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0",
-                inWishlist ? "bg-red-500 text-white" : "bg-white text-neutral-700 hover:bg-red-500 hover:text-white"
+                inWishlist ? "bg-red-500 text-white" : "bg-white/90 backdrop-blur-sm text-neutral-700 hover:bg-red-500 hover:text-white"
               )}
               aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}>
-              <Heart className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", inWishlist && "fill-current")} />
+              <Heart className={cn("h-3.5 w-3.5", inWishlist && "fill-current")} />
             </button>
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickView(product.slug); }}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md text-neutral-700 transition-all duration-200 sm:h-9 sm:w-9 hover:bg-neutral-900 hover:text-white",
+                "flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md text-neutral-700 transition-all duration-200 sm:h-8.5 sm:w-8.5 hover:bg-neutral-900 hover:text-white",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-75"
               )}
               aria-label="Quick view">
-              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Eye className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={(e) => {
@@ -146,59 +149,73 @@ export function ProductCard({ product, className, priority = false }: ProductCar
                 toast.success(isInCompare(product.id) ? "Removed from compare" : "Added to compare!", { duration: 1500 });
               }}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-9 sm:w-9",
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200 sm:h-8.5 sm:w-8.5",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-150",
-                isInCompare(product.id) ? "bg-amber-500 text-white" : "bg-white text-neutral-700 hover:bg-amber-500 hover:text-white"
+                isInCompare(product.id) ? "bg-amber-500 text-white" : "bg-white/90 backdrop-blur-sm text-neutral-700 hover:bg-amber-500 hover:text-white"
               )}
               aria-label="Compare">
-              <GitCompare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <GitCompare className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* Add to cart — always visible on mobile */}
+          {/* Add to cart — hover overlay */}
           <div className={cn(
-            "absolute bottom-0 left-0 right-0 p-2 transition-all duration-200 sm:p-3",
+            "absolute bottom-0 left-0 right-0 p-2.5 transition-all duration-200 z-10",
             "sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0",
             "opacity-100"
           )}>
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-900/90 py-2 text-xs font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5 sm:text-sm">
-              <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-900/90 backdrop-blur-sm py-2 text-xs font-medium text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5 sm:text-xs">
+              <ShoppingBag className="h-3.5 w-3.5" />
               Add to Cart
             </button>
           </div>
         </div>
 
         {/* Info */}
-        <div className="space-y-2 px-1 pb-1 pt-3">
-          {product.brand && (
-            <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-neutral-400 sm:text-[10px]">
-              {product.brand.name}
+        <div className="flex flex-col flex-1 justify-between p-3 sm:p-3.5">
+          <div className="space-y-0.5">
+            <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+              {product.brand?.name ?? "Exclusive"}
             </p>
-          )}
-          {/* Fixed height so all cards stay equal — 2 lines reserved always */}
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-amber-600 sm:min-h-[2.75rem] sm:text-[15px]">
-            {product.name}
-          </h3>
 
-          {product.reviewCount > 0 && (
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={cn("h-2.5 w-2.5 sm:h-3 sm:w-3", i < Math.round(product.rating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200")} />
-                ))}
-              </div>
-              <span className="text-[9px] text-neutral-500 sm:text-[10px]">({product.reviewCount})</span>
+            <h3
+              className="truncate text-sm font-semibold text-neutral-900 transition-colors group-hover:text-amber-600 sm:text-[15px]"
+              title={product.name}
+            >
+              {product.name}
+            </h3>
+          </div>
+
+          {/* Price & Rating Section */}
+          <div className="mt-2.5 space-y-1">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-base font-extrabold tracking-tight text-neutral-900 sm:text-[17px]">
+                {formatPrice(product.price)}
+              </span>
+              {product.comparePrice && product.comparePrice > product.price && (
+                <span className="text-xs text-neutral-400 line-through">
+                  {formatPrice(product.comparePrice)}
+                </span>
+              )}
             </div>
-          )}
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-neutral-900 sm:text-base">{formatPrice(product.price)}</span>
-            {product.comparePrice && product.comparePrice > product.price && (
-              <span className="text-[10px] text-neutral-400 line-through sm:text-xs">{formatPrice(product.comparePrice)}</span>
-            )}
+            {product.reviewCount > 0 ? (
+              <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  <span className="text-[12px] font-bold text-neutral-800">
+                    {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
+                  </span>
+                </div>
+                <span className="text-neutral-300">•</span>
+                <span className="text-[11px] text-neutral-400">
+                  ({product.reviewCount} {product.reviewCount === 1 ? "review" : "reviews"})
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
       </Link>

@@ -1,6 +1,6 @@
 export const SITE_NAME = "Marqet";
 export const SITE_DESCRIPTION =
-  "Premium e-commerce destination for luxury fashion, electronics, and branded products.";
+  "Premium e-commerce destination for luxury fashion, footwear, and branded products.";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const CURRENCY = "PKR";
@@ -53,3 +53,57 @@ export const SOCIAL_LINKS = {
   twitter: "https://twitter.com/faizan",
   youtube: "https://youtube.com/faizan",
 } as const;
+
+export const MAIN_CATEGORIES = [
+  {
+    name: "Clothing",
+    slug: "clothing",
+    emoji: "👕",
+    subs: [
+      { name: "Men", slug: "clothing-men" },
+      { name: "Women", slug: "clothing-women" },
+      { name: "Kids", slug: "clothing-kids" },
+    ],
+  },
+  {
+    name: "Shoes",
+    slug: "shoes",
+    emoji: "👟",
+    subs: [
+      { name: "Men", slug: "shoes-men" },
+      { name: "Women", slug: "shoes-women" },
+      { name: "Kids", slug: "shoes-kids" },
+    ],
+  },
+  {
+    name: "Bags",
+    slug: "bags",
+    emoji: "👜",
+    subs: [
+      { name: "Handbags", slug: "bags-handbags" },
+      { name: "Backpacks", slug: "bags-backpacks" },
+      { name: "Wallets", slug: "bags-wallets" },
+    ],
+  },
+  {
+    name: "Accessories",
+    slug: "accessories",
+    emoji: "🕶️",
+    subs: [
+      { name: "Caps", slug: "accessories-caps" },
+      { name: "Belts", slug: "accessories-belts" },
+      { name: "Sunglasses", slug: "accessories-sunglasses" },
+      { name: "Jewelry", slug: "accessories-jewelry" },
+    ],
+  },
+  {
+    name: "Perfumes",
+    slug: "perfumes",
+    emoji: "🌸",
+    subs: [
+      { name: "Men", slug: "perfumes-men" },
+      { name: "Women", slug: "perfumes-women" },
+    ],
+  },
+] as const;
+

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Package, Tag, Bookmark, ShoppingCart,
-  Users, Ticket, Image, LogOut, ChevronRight, Store,
+  Users, Ticket, Image, LogOut, ChevronRight, Store, Settings,
 } from "lucide-react";
 import { adminLogout } from "@/lib/admin-api";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,9 @@ const navItems = [
   { label: "Users",      href: "/admin/users",      icon: Users },
   { label: "Coupons",    href: "/admin/coupons",    icon: Ticket },
   { label: "Banners",    href: "/admin/banners",    icon: Image },
+  { label: "Settings",   href: "/admin/settings",   icon: Settings },
 ];
+
 
 export function AdminSidebar() {
   const pathname = usePathname();

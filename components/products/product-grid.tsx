@@ -25,7 +25,7 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={`grid ${columnClasses[columns]} gap-4 md:gap-6`}>
+      <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-3.5 md:gap-4`}>
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="space-y-3">
             <Skeleton className="aspect-[3/4] w-full rounded-xl" />
@@ -51,17 +51,19 @@ export function ProductGrid({
   }
 
   return (
-    <div className={`grid ${columnClasses[columns]} gap-4 md:gap-6`}>
+    <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-3.5 md:gap-4 items-stretch`}>
       {products.map((product, index) => (
         <motion.div
           key={product.id}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: index * 0.03 }}
+          className="h-full"
         >
           <ProductCard
             product={product}
             priority={index < 4}
+            className="h-full"
           />
         </motion.div>
       ))}

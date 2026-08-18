@@ -377,3 +377,18 @@ model Notification {
   @@index([userId])
   @@index([isRead])
 }
+
+// ─── Site Settings ─────────────────────────────────────────────────────────────
+
+model SiteSetting {
+  id          String   @id @default("default")
+  siteName    String   @default("Marqet")
+  description String   @default("Your premium destination for luxury fashion, electronics, and branded products. Quality you can trust, style you can feel.")
+  phone       String   @default("+92 302 7372812")
+  email       String   @default("support@faizan.com")
+  address     String   @default("Lahore, Punjab, Pakistan")
+  socialLinks Json?
+  footerLinks Json?
+  updatedAt   DateTime @updatedAt
+}
+

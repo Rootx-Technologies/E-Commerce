@@ -1,9 +1,12 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { SITE_NAME, SOCIAL_LINKS } from "@/lib/constants";
+import { SITE_NAME as DEFAULT_SITE_NAME, SOCIAL_LINKS as DEFAULT_SOCIAL_LINKS } from "@/lib/constants";
 import { FooterAdminLink } from "./footer-admin-link";
 
-// Social icons as inline SVGs (lucide v1 removed social icons)
+// Social icons as inline SVGs
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -33,7 +36,31 @@ function YoutubeIcon({ className }: { className?: string }) {
   );
 }
 
-const footerLinks = {
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface SettingsData {
+  siteName?: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    youtube?: string;
+  };
+  footerLinks?: {
+    shop?: FooterLink[];
+    support?: FooterLink[];
+    company?: FooterLink[];
+  };
+}
+
+const defaultFooterLinks = {
   shop: [
     { label: "New Arrivals", href: "/products?filter=new" },
     { label: "Best Sellers", href: "/products?filter=bestseller" },
@@ -58,6 +85,36 @@ const footerLinks = {
 };
 
 export function Footer() {
+  const [settings, setSettings] = useState<SettingsData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setSettings(data.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load footer settings:", err));
+  }, []);
+
+  const siteName = settings?.siteName || DEFAULT_SITE_NAME;
+  const description =
+    settings?.description ||
+    "Your premium destination for luxury fashion, electronics, and branded products. Quality you can trust, style you can feel.";
+  const phone = settings?.phone || "+92 302 7372812";
+  const email = settings?.email || "support@faizan.com";
+  const address = settings?.address || "Lahore, Punjab, Pakistan";
+
+  const social = {
+    instagram: settings?.socialLinks?.instagram || DEFAULT_SOCIAL_LINKS.instagram,
+    facebook: settings?.socialLinks?.facebook || DEFAULT_SOCIAL_LINKS.facebook,
+    twitter: settings?.socialLinks?.twitter || DEFAULT_SOCIAL_LINKS.twitter,
+    youtube: settings?.socialLinks?.youtube || DEFAULT_SOCIAL_LINKS.youtube,
+  };
+
+  const footerSections = settings?.footerLinks || defaultFooterLinks;
+
   return (
     <footer className="bg-neutral-900 text-neutral-300">
       {/* Main Footer */}
@@ -69,46 +126,51 @@ export function Footer() {
               href="/"
               className="text-3xl font-black tracking-[0.15em] text-white hover:text-amber-400 transition-colors"
             >
-              {SITE_NAME}
+              {siteName}
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-neutral-400 max-w-xs">
-              Your premium destination for luxury fashion, electronics, and branded
-              products. Quality you can trust, style you can feel.
+              {description}
             </p>
 
             {/* Contact */}
             <div className="mt-6 space-y-2">
-              <a
-                href="tel:+923027372812"
-                className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors"
-              >
-                <Phone className="h-4 w-4 text-amber-500" />
-                +92 302 7372812
-              </a>
-              <a
-                href="mailto:support@faizan.com"
-                className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors"
-              >
-                <Mail className="h-4 w-4 text-amber-500" />
-                support@faizan.com
-              </a>
-              <div className="flex items-center gap-2 text-sm text-neutral-400">
-                <MapPin className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                Lahore, Punjab, Pakistan
-              </div>
+              {phone && (
+                <a
+                  href={`tel:${phone.replace(/\s+/g, "")}`}
+                  className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-amber-500" />
+                  {phone}
+                </a>
+              )}
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors"
+                >
+                  <Mail className="h-4 w-4 text-amber-500" />
+                  {email}
+                </a>
+              )}
+              {address && (
+                <div className="flex items-center gap-2 text-sm text-neutral-400">
+                  <MapPin className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                  {address}
+                </div>
+              )}
             </div>
 
             {/* Social */}
             <div className="mt-6 flex items-center gap-3">
               {[
-                { icon: InstagramIcon, href: SOCIAL_LINKS.instagram, label: "Instagram" },
-                { icon: FacebookIcon, href: SOCIAL_LINKS.facebook, label: "Facebook" },
-                { icon: TwitterIcon, href: SOCIAL_LINKS.twitter, label: "Twitter" },
-                { icon: YoutubeIcon, href: SOCIAL_LINKS.youtube, label: "YouTube" },
+                { icon: InstagramIcon, href: social.instagram, label: "Instagram" },
+                { icon: FacebookIcon, href: social.facebook, label: "Facebook" },
+                { icon: TwitterIcon, href: social.twitter, label: "Twitter" },
+                { icon: YoutubeIcon, href: social.youtube, label: "YouTube" },
               ].map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
-                  href={href}
+                  href={href || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
@@ -121,14 +183,14 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          {Object.entries(footerLinks).map(([section, links]) => (
+          {Object.entries(footerSections).map(([section, links]) => (
             <div key={section}>
               <h3 className="text-sm font-semibold uppercase tracking-widest text-white mb-4">
                 {section}
               </h3>
               <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.href}>
+                {(links as FooterLink[]).map((link, idx) => (
+                  <li key={idx}>
                     <Link
                       href={link.href}
                       className="text-sm text-neutral-400 hover:text-white transition-colors"
@@ -147,7 +209,7 @@ export function Footer() {
       <div className="border-t border-neutral-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-neutral-500">
-            © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
+            © {new Date().getFullYear()} {siteName}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <FooterAdminLink />
