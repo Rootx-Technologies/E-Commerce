@@ -81,9 +81,6 @@ export function CompareClient() {
     { label: "New", render: (p: typeof items[0]) => (
       p.isNew ? <Check size={18} className="text-green-500 mx-auto" /> : <Minus size={18} className="text-neutral-300 mx-auto" />
     )},
-    { label: "Best Seller", render: (p: typeof items[0]) => (
-      p.isBestSeller ? <Check size={18} className="text-green-500 mx-auto" /> : <Minus size={18} className="text-neutral-300 mx-auto" />
-    )},
     { label: "Featured", render: (p: typeof items[0]) => (
       p.isFeatured ? <Check size={18} className="text-green-500 mx-auto" /> : <Minus size={18} className="text-neutral-300 mx-auto" />
     )},

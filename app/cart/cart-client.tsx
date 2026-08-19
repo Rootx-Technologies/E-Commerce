@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/lib/utils";
+import { getColorHex } from "@/lib/product-variants";
 import toast from "react-hot-toast";
 
 export function CartPageClient() {
@@ -95,9 +96,22 @@ export function CartPageClient() {
                 </div>
 
                 {(item.size || item.color) && (
-                  <p className="text-[10px] sm:text-xs text-neutral-500">
-                    {[item.size && `Size: ${item.size}`, item.color && `Color: ${item.color}`].filter(Boolean).join(" · ")}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap my-1">
+                    {item.size && (
+                      <span className="inline-flex items-center rounded-md bg-neutral-100 border border-neutral-200 px-2 py-0.5 text-xs font-semibold text-neutral-800">
+                        Size: <span className="ml-1 text-amber-700 font-bold">{item.size}</span>
+                      </span>
+                    )}
+                    {item.color && (
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-neutral-100 border border-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full border border-neutral-300 inline-block"
+                          style={{ backgroundColor: getColorHex(item.color) }}
+                        />
+                        {item.color}
+                      </span>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex items-center justify-between mt-auto pt-1">

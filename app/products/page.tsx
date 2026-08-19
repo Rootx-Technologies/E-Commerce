@@ -13,6 +13,7 @@ interface SearchParams {
   search?: string;
   category?: string;
   brand?: string;
+  size?: string;
   minPrice?: string;
   maxPrice?: string;
   sort?: string;
@@ -33,8 +34,31 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   // Build where clause
   const where: Record<string, unknown> = { isActive: true };
 
-  if (params.category) where.category = { slug: params.category };
-  if (params.brand)    where.brand    = { slug: params.brand };
+  if (params.category) {
+    const slugs = params.category.split(",");
+    where.category = {
+      OR: [
+        { slug: { in: slugs } },
+        { parent: { slug: { in: slugs } } }
+      ]
+    };
+  }
+  
+  if (params.brand) {
+    const slugs = params.brand.split(",");
+    where.brand = { slug: { in: slugs } };
+  }
+
+  // Handle sizes for server side rendering
+  if (params.size) {
+    const sizes = params.size.split(",");
+    where.variants = {
+      some: {
+        size: { in: sizes }
+      }
+    };
+  }
+
   if (params.filter === "new")        where.isNew       = true;
   if (params.filter === "featured")   where.isFeatured  = true;
   if (params.filter === "bestseller") where.isBestSeller = true;
@@ -73,7 +97,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       take: limit,
       include: { images: true, variants: true, category: true, brand: true },
     }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
+    db.category.findMany({ orderBy: { name: "asc" }, include: { parent: { select: { id: true, name: true } } } }),
     db.brand.findMany({ orderBy: { name: "asc" } }),
   ]);
 

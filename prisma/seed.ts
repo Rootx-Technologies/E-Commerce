@@ -37,9 +37,9 @@ const MAIN_CATEGORIES_TREE = [
     image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=80",
     description: "Premium fashion for Men, Women and Kids",
     subs: [
-      { name: "Men",   slug: "clothing-men",   image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=400&q=80" },
-      { name: "Women", slug: "clothing-women", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80" },
-      { name: "Kids",  slug: "clothing-kids",  image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&q=80" },
+      { name: "Men",   slug: "men-clothing",   image: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=400&q=80" },
+      { name: "Women", slug: "women-clothing", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80" },
+      { name: "Kids",  slug: "kids-clothing",  image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&q=80" },
     ],
   },
   {
@@ -48,9 +48,9 @@ const MAIN_CATEGORIES_TREE = [
     image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80",
     description: "Footwear collection for Men, Women and Kids",
     subs: [
-      { name: "Men",   slug: "shoes-men",   image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" },
-      { name: "Women", slug: "shoes-women", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80" },
-      { name: "Kids",  slug: "shoes-kids",  image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&q=80" },
+      { name: "Men",   slug: "men-shoes",   image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" },
+      { name: "Women", slug: "women-shoes", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80" },
+      { name: "Kids",  slug: "kids-shoes",  image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&q=80" },
     ],
   },
   {
@@ -82,8 +82,8 @@ const MAIN_CATEGORIES_TREE = [
     image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80",
     description: "Luxury fragrances for Men, Women and Unisex",
     subs: [
-      { name: "Men",    slug: "perfumes-men",    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400&q=80" },
-      { name: "Women",  slug: "perfumes-women",  image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80" },
+      { name: "Men",    slug: "men-perfumes",    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400&q=80" },
+      { name: "Women",  slug: "women-perfumes",  image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80" },
       { name: "Unisex", slug: "perfumes-unisex", image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&q=80" },
     ],
   },
@@ -108,7 +108,7 @@ const FRESH_PRODUCTS = [
     slug: "mens-designer-embroidered-kurta",
     description: "Premium cotton designer kurta crafted with intricate embroidery for formal and festive occasions.",
     price: 3800, comparePrice: 5200,
-    categorySlug: "clothing-men", brandSlug: "khaadi",
+    categorySlug: "men-clothing", brandSlug: "khaadi",
     tags: ["kurta", "men", "festive", "cotton"],
     stock: 45, rating: 4.8, reviewCount: 124,
     isFeatured: true, isNew: true, isBestSeller: true, isTrending: false,
@@ -119,7 +119,7 @@ const FRESH_PRODUCTS = [
     slug: "slim-fit-casual-cotton-shirt",
     description: "Classic slim fit button-up cotton shirt designed for everyday modern style.",
     price: 2900, comparePrice: 4000,
-    categorySlug: "clothing-men", brandSlug: "zara",
+    categorySlug: "men-clothing", brandSlug: "zara",
     tags: ["shirt", "men", "casual"],
     stock: 50, rating: 4.6, reviewCount: 88,
     isFeatured: false, isNew: true, isBestSeller: false, isTrending: true,
@@ -132,7 +132,7 @@ const FRESH_PRODUCTS = [
     slug: "embroidered-chiffon-3-piece-suit",
     description: "Luxury embroidered 3-piece chiffon lawn suit with hand-printed silk dupatta.",
     price: 6800, comparePrice: 9500,
-    categorySlug: "clothing-women", brandSlug: "gul-ahmed",
+    categorySlug: "women-clothing", brandSlug: "gul-ahmed",
     tags: ["suit", "chiffon", "women", "lawn"],
     stock: 30, rating: 4.9, reviewCount: 210,
     isFeatured: true, isNew: true, isBestSeller: true, isTrending: true,
@@ -143,7 +143,7 @@ const FRESH_PRODUCTS = [
     slug: "handwoven-kashmiri-shawl",
     description: "Elegant traditional handwoven Kashmiri wool shawl with rich floral embroidery.",
     price: 5200, comparePrice: 7500,
-    categorySlug: "clothing-women", brandSlug: "sana-safinaz",
+    categorySlug: "women-clothing", brandSlug: "sana-safinaz",
     tags: ["shawl", "women", "kashmiri"],
     stock: 25, rating: 4.7, reviewCount: 95,
     isFeatured: false, isNew: false, isBestSeller: true, isTrending: false,
@@ -156,7 +156,7 @@ const FRESH_PRODUCTS = [
     slug: "kids-festive-cotton-kurta-set",
     description: "Soft breathable cotton festive kurta and pajama set for boys.",
     price: 2400, comparePrice: 3200,
-    categorySlug: "clothing-kids", brandSlug: "bonanza-satrangi",
+    categorySlug: "kids-clothing", brandSlug: "bonanza-satrangi",
     tags: ["kids", "kurta", "festive"],
     stock: 40, rating: 4.7, reviewCount: 56,
     isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
@@ -169,7 +169,7 @@ const FRESH_PRODUCTS = [
     slug: "handcrafted-leather-oxford-shoes",
     description: "Genuine leather Oxford formal shoes with anti-slip cushioned sole.",
     price: 9800, comparePrice: 14000,
-    categorySlug: "shoes-men", brandSlug: "zara",
+    categorySlug: "men-shoes", brandSlug: "zara",
     tags: ["shoes", "leather", "oxford", "formal"],
     stock: 20, rating: 4.8, reviewCount: 164,
     isFeatured: true, isNew: false, isBestSeller: true, isTrending: false,
@@ -180,7 +180,7 @@ const FRESH_PRODUCTS = [
     slug: "pro-performance-running-sneakers",
     description: "High-performance breathable running shoes with ultra-boost comfort response.",
     price: 8600, comparePrice: 12000,
-    categorySlug: "shoes-men", brandSlug: "nike",
+    categorySlug: "men-shoes", brandSlug: "nike",
     tags: ["sneakers", "running", "sports"],
     stock: 35, rating: 4.9, reviewCount: 420,
     isFeatured: true, isNew: true, isBestSeller: false, isTrending: true,
@@ -193,7 +193,7 @@ const FRESH_PRODUCTS = [
     slug: "embellished-traditional-khussa",
     description: "Handmade velvet embroidered traditional khussa with comfortable inner lining.",
     price: 3400, comparePrice: 4800,
-    categorySlug: "shoes-women", brandSlug: "alkaram",
+    categorySlug: "women-shoes", brandSlug: "alkaram",
     tags: ["khussa", "women", "shoes", "traditional"],
     stock: 40, rating: 4.6, reviewCount: 112,
     isFeatured: false, isNew: true, isBestSeller: true, isTrending: false,
@@ -206,7 +206,7 @@ const FRESH_PRODUCTS = [
     slug: "kids-light-up-sports-sneakers",
     description: "Durable and lightweight sport sneakers with LED lights for active kids.",
     price: 3200, comparePrice: 4500,
-    categorySlug: "shoes-kids", brandSlug: "adidas",
+    categorySlug: "kids-shoes", brandSlug: "adidas",
     tags: ["kids", "sneakers", "sports"],
     stock: 30, rating: 4.5, reviewCount: 68,
     isFeatured: false, isNew: true, isBestSeller: false, isTrending: false,
@@ -310,7 +310,7 @@ const FRESH_PRODUCTS = [
     slug: "royal-oud-intense-edp-100ml",
     description: "Sophisticated long-lasting wood and spice EDP cologne for men.",
     price: 5800, comparePrice: 8200,
-    categorySlug: "perfumes-men", brandSlug: "alkaram",
+    categorySlug: "men-perfumes", brandSlug: "alkaram",
     tags: ["perfume", "oud", "men", "fragrance"],
     stock: 45, rating: 4.9, reviewCount: 290,
     isFeatured: true, isNew: true, isBestSeller: true, isTrending: true,
@@ -323,7 +323,7 @@ const FRESH_PRODUCTS = [
     slug: "velvet-rose-jasmine-edp-100ml",
     description: "Enchanting floral oriental EDP fragrance infused with wild rose and vanilla.",
     price: 5200, comparePrice: 7500,
-    categorySlug: "perfumes-women", brandSlug: "sapphire",
+    categorySlug: "women-perfumes", brandSlug: "sapphire",
     tags: ["perfume", "rose", "women", "fragrance"],
     stock: 40, rating: 4.8, reviewCount: 215,
     isFeatured: true, isNew: false, isBestSeller: true, isTrending: false,
@@ -422,6 +422,40 @@ async function main() {
       continue;
     }
 
+    // Generate variants for Mens, Women, Kids, Shoes
+    const isApparel = p.categorySlug.startsWith("clothing");
+    const isShoes = p.categorySlug.startsWith("shoes");
+
+    const variantData: Array<{ size: string; color: string; colorHex: string; stock: number; price: number }> = [];
+
+    if (isApparel) {
+      const sizes = p.categorySlug === "kids-clothing" ? ["S", "M", "L", "XL"] : ["S", "M", "L", "XL", "XXL"];
+      const colors = p.categorySlug === "men-clothing"
+        ? [{ name: "Black", hex: "#18181b" }, { name: "Navy Blue", hex: "#1e3a8a" }, { name: "Olive Green", hex: "#3f4f34" }, { name: "Maroon", hex: "#881337" }]
+        : p.categorySlug === "women-clothing"
+        ? [{ name: "Emerald Green", hex: "#065f46" }, { name: "Royal Plum", hex: "#581c87" }, { name: "Crimson Red", hex: "#991b1b" }, { name: "Navy Blue", hex: "#1e3a8a" }]
+        : [{ name: "Mustard", hex: "#eab308" }, { name: "Sky Blue", hex: "#38bdf8" }, { name: "Mint Green", hex: "#34d399" }, { name: "Coral", hex: "#fb7185" }];
+
+      for (const size of sizes) {
+        for (const col of colors) {
+          variantData.push({ size, color: col.name, colorHex: col.hex, stock: 15, price: p.price });
+        }
+      }
+    } else if (isShoes) {
+      const sizes = ["39", "40", "41", "42", "43", "44"];
+      const colors = p.categorySlug === "men-shoes"
+        ? [{ name: "Black", hex: "#18181b" }, { name: "Cognac Brown", hex: "#78350f" }, { name: "Navy Blue", hex: "#1e3a8a" }]
+        : p.categorySlug === "women-shoes"
+        ? [{ name: "Gold", hex: "#d97706" }, { name: "Maroon", hex: "#881337" }, { name: "Black", hex: "#18181b" }]
+        : [{ name: "Crimson Red", hex: "#dc2626" }, { name: "Royal Blue", hex: "#2563eb" }, { name: "Black", hex: "#18181b" }];
+
+      for (const size of sizes) {
+        for (const col of colors) {
+          variantData.push({ size, color: col.name, colorHex: col.hex, stock: 15, price: p.price });
+        }
+      }
+    }
+
     await prisma.product.create({
       data: {
         name: p.name,
@@ -447,6 +481,9 @@ async function main() {
             isPrimary: img.isPrimary,
           })),
         },
+        variants: variantData.length > 0 ? {
+          create: variantData,
+        } : undefined,
       },
     });
     count++;

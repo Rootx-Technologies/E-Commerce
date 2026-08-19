@@ -56,23 +56,32 @@ export const SOCIAL_LINKS = {
 
 export const MAIN_CATEGORIES = [
   {
-    name: "Clothing",
-    slug: "clothing",
-    emoji: "👕",
+    name: "Men",
+    slug: "men",
+    emoji: "👨",
     subs: [
-      { name: "Men", slug: "clothing-men" },
-      { name: "Women", slug: "clothing-women" },
-      { name: "Kids", slug: "clothing-kids" },
+      { name: "Clothing", slug: "men-clothing" },
+      { name: "Shoes", slug: "men-shoes" },
+      { name: "Perfumes", slug: "men-perfumes" },
     ],
   },
   {
-    name: "Shoes",
-    slug: "shoes",
-    emoji: "👟",
+    name: "Women",
+    slug: "women",
+    emoji: "👩",
     subs: [
-      { name: "Men", slug: "shoes-men" },
-      { name: "Women", slug: "shoes-women" },
-      { name: "Kids", slug: "shoes-kids" },
+      { name: "Clothing", slug: "women-clothing" },
+      { name: "Shoes", slug: "women-shoes" },
+      { name: "Perfumes", slug: "women-perfumes" },
+    ],
+  },
+  {
+    name: "Kids",
+    slug: "kids",
+    emoji: "🧒",
+    subs: [
+      { name: "Clothing", slug: "kids-clothing" },
+      { name: "Shoes", slug: "kids-shoes" },
     ],
   },
   {
@@ -83,26 +92,6 @@ export const MAIN_CATEGORIES = [
       { name: "Handbags", slug: "bags-handbags" },
       { name: "Backpacks", slug: "bags-backpacks" },
       { name: "Wallets", slug: "bags-wallets" },
-    ],
-  },
-  {
-    name: "Accessories",
-    slug: "accessories",
-    emoji: "🕶️",
-    subs: [
-      { name: "Caps", slug: "accessories-caps" },
-      { name: "Belts", slug: "accessories-belts" },
-      { name: "Sunglasses", slug: "accessories-sunglasses" },
-      { name: "Jewelry", slug: "accessories-jewelry" },
-    ],
-  },
-  {
-    name: "Perfumes",
-    slug: "perfumes",
-    emoji: "🌸",
-    subs: [
-      { name: "Men", slug: "perfumes-men" },
-      { name: "Women", slug: "perfumes-women" },
     ],
   },
 ] as const;

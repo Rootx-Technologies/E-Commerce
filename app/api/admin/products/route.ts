@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { deleteCachePattern } from "@/lib/redis";
+import { getDefaultVariantsForCategory } from "@/lib/product-variants";
 import type { ApiResponse } from "@/types";
 
 // ─── GET /api/admin/products ─────────────────────────────────────────────────
@@ -99,6 +100,44 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
+    // If no variants provided, auto-generate for apparel and shoes
+    let variantCreateData = variants?.length
+      ? variants.map((v: { size?: string; color?: string; colorHex?: string; stock?: number; price?: number }) => ({
+          size: v.size,
+          color: v.color,
+          colorHex: v.colorHex,
+          stock: Number(v.stock ?? 0),
+          price: v.price != null ? Number(v.price) : null,
+        }))
+      : undefined;
+
+    if (!variantCreateData || variantCreateData.length === 0) {
+      const category = await db.category.findUnique({ where: { id: categoryId } });
+      const { sizes, colors } = getDefaultVariantsForCategory(category?.slug ?? "", name);
+      if (sizes.length > 0 && colors.length > 0) {
+        variantCreateData = [];
+        for (const s of sizes) {
+          for (const c of colors) {
+            variantCreateData.push({
+              size: s.shortLabel,
+              color: c.name,
+              colorHex: c.hex,
+              stock: 15,
+              price: Number(price),
+            });
+          }
+        }
+      } else if (sizes.length > 0) {
+        variantCreateData = sizes.map((s) => ({
+          size: s.shortLabel,
+          color: undefined,
+          colorHex: undefined,
+          stock: 20,
+          price: Number(price),
+        }));
+      }
+    }
+
     const product = await db.product.create({
       data: {
         name,
@@ -122,14 +161,8 @@ export async function POST(request: NextRequest): Promise<Response> {
               isPrimary: img.isPrimary ?? false,
             })) }
           : undefined,
-        variants: variants?.length
-          ? { create: variants.map((v: { size?: string; color?: string; colorHex?: string; stock?: number; price?: number }) => ({
-              size: v.size,
-              color: v.color,
-              colorHex: v.colorHex,
-              stock: Number(v.stock ?? 0),
-              price: v.price != null ? Number(v.price) : null,
-            })) }
+        variants: variantCreateData && variantCreateData.length > 0
+          ? { create: variantCreateData }
           : undefined,
       },
       include: { images: true, variants: true, category: true, brand: true },

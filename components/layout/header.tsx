@@ -16,66 +16,60 @@ import { useUIStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
 
-// Main category cards
+// Main category cards (used when hovering top level items)
 const CATEGORY_IMAGES: Record<string, { url: string; label: string; href: string }[]> = {
-  clothing: [
-    { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", label: "Women's Collection", href: "/products?category=clothing-women" },
-    { url: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=500&q=80", label: "Men's Collection", href: "/products?category=clothing-men" },
-    { url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&q=80", label: "Kids Collection", href: "/products?category=clothing-kids" },
+  men: [
+    { url: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=500&q=80", label: "Men's Clothing", href: "/products?category=men-clothing" },
+    { url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=500&q=80", label: "Men's Shoes", href: "/products?category=men-shoes" },
+    { url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500&q=80", label: "Men's Perfumes", href: "/products?category=men-perfumes" },
   ],
-  shoes: [
-    { url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=500&q=80", label: "Men's Shoes", href: "/products?category=shoes-men" },
-    { url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&q=80", label: "Women's Shoes", href: "/products?category=shoes-women" },
-    { url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=500&q=80", label: "Kids Shoes", href: "/products?category=shoes-kids" },
+  women: [
+    { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", label: "Women's Clothing", href: "/products?category=women-clothing" },
+    { url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&q=80", label: "Women's Shoes", href: "/products?category=women-shoes" },
+    { url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=500&q=80", label: "Women's Perfumes", href: "/products?category=women-perfumes" },
+  ],
+  kids: [
+    { url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&q=80", label: "Kids Clothing", href: "/products?category=kids-clothing" },
+    { url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=500&q=80", label: "Kids Shoes", href: "/products?category=kids-shoes" },
   ],
   bags: [
     { url: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500&q=80", label: "Handbags", href: "/products?category=bags-handbags" },
     { url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80", label: "Backpacks", href: "/products?category=bags-backpacks" },
     { url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&q=80", label: "Wallets", href: "/products?category=bags-wallets" },
   ],
-  accessories: [
-    { url: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=500&q=80", label: "Caps & Hats", href: "/products?category=accessories-caps" },
-    { url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80", label: "Sunglasses", href: "/products?category=accessories-sunglasses" },
-    { url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80", label: "Jewelry", href: "/products?category=accessories-jewelry" },
-  ],
-  perfumes: [
-    { url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500&q=80", label: "Men's Fragrances", href: "/products?category=perfumes-men" },
-    { url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=500&q=80", label: "Women's Perfumes", href: "/products?category=perfumes-women" },
-    { url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500&q=80", label: "Luxury Gift Sets", href: "/products?category=perfumes-women" },
-  ],
 };
 
-// Sub-category specific cards (when hovering over a specific subcategory like Men/Women/Kids)
+// Sub-category specific cards (when hovering over a specific subcategory)
 const SUBCATEGORY_CARDS: Record<string, { url: string; label: string; href: string }[]> = {
-  "clothing-men": [
-    { url: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=500&q=80", label: "Men's Kurta", href: "/products?category=clothing-men" },
-    { url: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=500&q=80", label: "Casual Shirts", href: "/products?category=clothing-men" },
-    { url: "https://images.unsplash.com/photo-1594938298603-c8148c4b5b58?w=500&q=80", label: "Formal Suits", href: "/products?category=clothing-men" },
+  "men-clothing": [
+    { url: "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=500&q=80", label: "Men's Kurta", href: "/products?category=men-clothing" },
+    { url: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=500&q=80", label: "Casual Shirts", href: "/products?category=men-clothing" },
+    { url: "https://images.unsplash.com/photo-1594938298603-c8148c4b5b58?w=500&q=80", label: "Formal Suits", href: "/products?category=men-clothing" },
   ],
-  "clothing-women": [
-    { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", label: "Women's Lawn", href: "/products?category=clothing-women" },
-    { url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=80", label: "Party Dresses", href: "/products?category=clothing-women" },
-    { url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=80", label: "Pret & Casuals", href: "/products?category=clothing-women" },
+  "women-clothing": [
+    { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", label: "Women's Lawn", href: "/products?category=women-clothing" },
+    { url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=80", label: "Party Dresses", href: "/products?category=women-clothing" },
+    { url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=80", label: "Pret & Casuals", href: "/products?category=women-clothing" },
   ],
-  "clothing-kids": [
-    { url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&q=80", label: "Kids Festive", href: "/products?category=clothing-kids" },
-    { url: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=500&q=80", label: "Boys Wear", href: "/products?category=clothing-kids" },
-    { url: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&q=80", label: "Girls Dresses", href: "/products?category=clothing-kids" },
+  "kids-clothing": [
+    { url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&q=80", label: "Kids Festive", href: "/products?category=kids-clothing" },
+    { url: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=500&q=80", label: "Boys Wear", href: "/products?category=kids-clothing" },
+    { url: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&q=80", label: "Girls Dresses", href: "/products?category=kids-clothing" },
   ],
-  "shoes-men": [
-    { url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=500&q=80", label: "Men's Formal Shoes", href: "/products?category=shoes-men" },
-    { url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80", label: "Men's Sneakers", href: "/products?category=shoes-men" },
-    { url: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80", label: "Leather Loafers", href: "/products?category=shoes-men" },
+  "men-shoes": [
+    { url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=500&q=80", label: "Men's Formal Shoes", href: "/products?category=men-shoes" },
+    { url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80", label: "Men's Sneakers", href: "/products?category=men-shoes" },
+    { url: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80", label: "Leather Loafers", href: "/products?category=men-shoes" },
   ],
-  "shoes-women": [
-    { url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&q=80", label: "High Heels", href: "/products?category=shoes-women" },
-    { url: "https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=500&q=80", label: "Sandals & Flats", href: "/products?category=shoes-women" },
-    { url: "https://images.unsplash.com/photo-1583304235194-cb5b3a08b8dc?w=500&q=80", label: "Casual Sneakers", href: "/products?category=shoes-women" },
+  "women-shoes": [
+    { url: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&q=80", label: "High Heels", href: "/products?category=women-shoes" },
+    { url: "https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=500&q=80", label: "Sandals & Flats", href: "/products?category=women-shoes" },
+    { url: "https://images.unsplash.com/photo-1583304235194-cb5b3a08b8dc?w=500&q=80", label: "Casual Sneakers", href: "/products?category=women-shoes" },
   ],
-  "shoes-kids": [
-    { url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=500&q=80", label: "Kids Sneakers", href: "/products?category=shoes-kids" },
-    { url: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&q=80", label: "Sport Shoes", href: "/products?category=shoes-kids" },
-    { url: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&q=80", label: "School Shoes", href: "/products?category=shoes-kids" },
+  "kids-shoes": [
+    { url: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=500&q=80", label: "Kids Sneakers", href: "/products?category=kids-shoes" },
+    { url: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&q=80", label: "Sport Shoes", href: "/products?category=kids-shoes" },
+    { url: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&q=80", label: "School Shoes", href: "/products?category=kids-shoes" },
   ],
   "bags-handbags": [
     { url: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500&q=80", label: "Shoulder Bags", href: "/products?category=bags-handbags" },
@@ -92,35 +86,15 @@ const SUBCATEGORY_CARDS: Record<string, { url: string; label: string; href: stri
     { url: "https://images.unsplash.com/photo-1559841644-08984562005b?w=500&q=80", label: "Card Holders", href: "/products?category=bags-wallets" },
     { url: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=500&q=80", label: "Clutch Wallets", href: "/products?category=bags-wallets" },
   ],
-  "accessories-caps": [
-    { url: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=500&q=80", label: "Baseball Caps", href: "/products?category=accessories-caps" },
-    { url: "https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=500&q=80", label: "Summer Hats", href: "/products?category=accessories-caps" },
-    { url: "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=500&q=80", label: "Beanies", href: "/products?category=accessories-caps" },
+  "men-perfumes": [
+    { url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500&q=80", label: "Men's Oud", href: "/products?category=men-perfumes" },
+    { url: "https://images.unsplash.com/photo-1547887538-e3a2f32cb1cc?w=500&q=80", label: "Eau de Parfum", href: "/products?category=men-perfumes" },
+    { url: "https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=500&q=80", label: "Fresh Cologne", href: "/products?category=men-perfumes" },
   ],
-  "accessories-belts": [
-    { url: "https://images.unsplash.com/photo-1624222247344-550d27dbd37e?w=500&q=80", label: "Leather Belts", href: "/products?category=accessories-belts" },
-    { url: "https://images.unsplash.com/photo-1604652716179-3cdf17c15f41?w=500&q=80", label: "Casual Belts", href: "/products?category=accessories-belts" },
-    { url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80", label: "Formal Belts", href: "/products?category=accessories-belts" },
-  ],
-  "accessories-sunglasses": [
-    { url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80", label: "Aviator Shades", href: "/products?category=accessories-sunglasses" },
-    { url: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&q=80", label: "Round Frames", href: "/products?category=accessories-sunglasses" },
-    { url: "https://images.unsplash.com/photo-1508296695146-257a814070b4?w=500&q=80", label: "Modern Shades", href: "/products?category=accessories-sunglasses" },
-  ],
-  "accessories-jewelry": [
-    { url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80", label: "Gold Jewelry", href: "/products?category=accessories-jewelry" },
-    { url: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80", label: "Silver Rings", href: "/products?category=accessories-jewelry" },
-    { url: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500&q=80", label: "Necklaces", href: "/products?category=accessories-jewelry" },
-  ],
-  "perfumes-men": [
-    { url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500&q=80", label: "Men's Oud", href: "/products?category=perfumes-men" },
-    { url: "https://images.unsplash.com/photo-1547887538-e3a2f32cb1cc?w=500&q=80", label: "Eau de Parfum", href: "/products?category=perfumes-men" },
-    { url: "https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=500&q=80", label: "Fresh Cologne", href: "/products?category=perfumes-men" },
-  ],
-  "perfumes-women": [
-    { url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=500&q=80", label: "Floral Perfume", href: "/products?category=perfumes-women" },
-    { url: "https://images.unsplash.com/photo-1588776814546-daab30f310ce?w=500&q=80", label: "Rose Mist", href: "/products?category=perfumes-women" },
-    { url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500&q=80", label: "Luxury Gift Sets", href: "/products?category=perfumes-women" },
+  "women-perfumes": [
+    { url: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=500&q=80", label: "Floral Perfume", href: "/products?category=women-perfumes" },
+    { url: "https://images.unsplash.com/photo-1588776814546-daab30f310ce?w=500&q=80", label: "Rose Mist", href: "/products?category=women-perfumes" },
+    { url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500&q=80", label: "Luxury Gift Sets", href: "/products?category=women-perfumes" },
   ],
 };
 
@@ -131,7 +105,7 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [activeMegaCategory, setActiveMegaCategory] = useState<string>("clothing");
+  const [activeMegaCategory, setActiveMegaCategory] = useState<string>("men");
   const [activeSubCategory, setActiveSubCategory] = useState<string | null>(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
 
@@ -197,7 +171,7 @@ export function Header() {
   // Cards to show on the right side
   const displayCards = (activeSubCategory && SUBCATEGORY_CARDS[activeSubCategory])
     ? SUBCATEGORY_CARDS[activeSubCategory]
-    : (CATEGORY_IMAGES[activeMegaCategory] ?? CATEGORY_IMAGES.clothing);
+    : (CATEGORY_IMAGES[activeMegaCategory] ?? CATEGORY_IMAGES.men ?? []);
 
   return (
     <>

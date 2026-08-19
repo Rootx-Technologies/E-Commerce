@@ -2,15 +2,41 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { SectionHeader } from "./section-header";
 import type { Category } from "@/types";
 
 const MAIN_CATEGORY_DATA = [
-  { id: "clothing", name: "Clothing", slug: "clothing", image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80" },
-  { id: "shoes", name: "Shoes", slug: "shoes", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80" },
-  { id: "bags", name: "Bags", slug: "bags", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80" },
-  { id: "accessories", name: "Accessories", slug: "accessories", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80" },
-  { id: "perfumes", name: "Perfumes", slug: "perfumes", image: "https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80" },
+  { 
+    id: "men", 
+    name: "Men", 
+    slug: "men", 
+    subtitle: "Modern Elite",
+    desc: "Style Redefined",
+    image: "https://www.exportleftovers.com/cdn/shop/files/anime_5.jpg?v=1784118174&width=720" 
+  },
+  { 
+    id: "women", 
+    name: "Women", 
+    slug: "women", 
+    subtitle: "Daily Ease",
+    desc: "Made For Comfort",
+    image: "https://www.exportleftovers.com/cdn/shop/files/white_2_03a9b9bb-d15a-4809-b5b3-ca5be0dab7c4.jpg?v=1784377234&width=720" 
+  },
+  { 
+    id: "kids", 
+    name: "Kids", 
+    slug: "kids", 
+    subtitle: "Daily Fun",
+    desc: "Designed For Activity",
+    image: "https://www.exportleftovers.com/cdn/shop/files/5_86f257cf-9ae5-4e00-aa6a-5136cd85cdb4.jpg?v=1785424365&width=720" 
+  },
+  { 
+    id: "bags", 
+    name: "Bags", 
+    slug: "bags", 
+    subtitle: "Premium Carry",
+    desc: "Quality You Can Feel",
+    image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&q=80" 
+  },
 ];
 
 interface CategoriesSectionProps {
@@ -18,45 +44,60 @@ interface CategoriesSectionProps {
 }
 
 export function CategoriesSection({ categories }: CategoriesSectionProps) {
-  // Always ensure only the 5 main categories are shown
+  // Always ensure only the 4 main categories are shown
   const displayCategories = MAIN_CATEGORY_DATA.map((mainCat) => {
     const dbCat = categories?.find((c) => c.slug.toLowerCase() === mainCat.slug);
     return {
+      ...mainCat,
       id: dbCat?.id ?? mainCat.id,
-      name: mainCat.name,
-      slug: mainCat.slug,
       image: dbCat?.image || mainCat.image,
     };
   });
 
   return (
-    <section className="bg-neutral-50 py-10 sm:py-16">
+    <section className="bg-white py-12 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Shop by Category" subtitle="Browse" viewAllHref="/categories" />
+        
+        <div className="text-center mb-10 sm:mb-14">
+          <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            FIND EVERYTHING YOU NEED IN ONE PLACE
+          </p>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 uppercase">
+            SHOP BY CATEGORY
+          </h2>
+        </div>
 
-        {/* 5 Main Categories Grid */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6 justify-items-center">
+        {/* 4 Large Vertical Categories Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {displayCategories.map((category) => (
             <Link
               key={category.slug}
               href={`/products?category=${category.slug}`}
-              className="group flex flex-col items-center gap-3.5 rounded-2xl p-3 w-full max-w-[200px] transition-all duration-300 hover:-translate-y-1.5"
+              className="group relative h-[450px] sm:h-[500px] lg:h-[600px] w-full overflow-hidden rounded-xl bg-neutral-100 flex flex-col justify-end p-6 sm:p-8 transition-transform duration-300 hover:-translate-y-1"
             >
-              {/* Circle Image */}
-              <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 overflow-hidden rounded-full border-4 border-white bg-white shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-2 ring-neutral-200/60 transition-all duration-300 group-hover:ring-amber-400 group-hover:shadow-[0_16px_36px_rgba(245,158,11,0.25)]">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                  sizes="(max-width: 640px) 100px, 128px"
-                />
-              </div>
+              <Image
+                src={category.image}
+                alt={category.name}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              />
+              
+              {/* Gradient Overlay for Text Readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
 
-              {/* Label */}
-              <span className="text-center text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-800 transition-colors duration-200 group-hover:text-amber-600">
-                {category.name}
-              </span>
+              {/* Content */}
+              <div className="relative z-10 text-white">
+                <p className="text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 text-neutral-200">
+                  {category.subtitle}
+                </p>
+                <h3 className="text-3xl sm:text-4xl font-bold mb-2">
+                  {category.name}
+                </h3>
+                <p className="text-sm text-neutral-300">
+                  {category.desc}
+                </p>
+              </div>
             </Link>
           ))}
         </div>

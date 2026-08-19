@@ -401,7 +401,14 @@ export function CheckoutClient() {
                         {item.quantity}
                       </span>
                     </div>
-                    <p className="flex-1 text-xs text-neutral-700 line-clamp-2">{item.product.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-neutral-700 line-clamp-2">{item.product.name}</p>
+                      {(item.size || item.color) && (
+                        <p className="text-[10px] text-neutral-500 mt-0.5">
+                          {[item.size && `Size: ${item.size}`, item.color && `Color: ${item.color}`].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                    </div>
                     <p className="text-xs font-semibold text-neutral-900 flex-shrink-0">
                       {formatPrice(item.price * item.quantity)}
                     </p>

@@ -117,7 +117,7 @@ export function AdminCategoriesClient() {
       key: "image",
       header: "",
       render: (c) => (
-        <div className="h-9 w-9 rounded-lg bg-neutral-100 overflow-hidden">
+        <div className="h-9 w-9 rounded-lg bg-neutral-100 overflow-hidden flex-shrink-0">
           {c.image
             ? <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
             : <div className="h-full w-full flex items-center justify-center text-neutral-300"><Tag size={14} /></div>}
@@ -128,8 +128,11 @@ export function AdminCategoriesClient() {
       key: "name",
       header: "Category",
       render: (c) => (
-        <div>
-          <p className="font-medium text-neutral-800">{c.name}</p>
+        <div className={c.parentId ? "pl-5 border-l-2 border-neutral-200" : ""}>
+          <p className={`font-medium text-neutral-800 ${!c.parentId ? "font-bold" : "text-sm"}`}>
+            {!c.parentId && <span className="mr-1.5 text-neutral-400 text-xs">◆</span>}
+            {c.name}
+          </p>
           <p className="text-xs text-neutral-400 font-mono">{c.slug}</p>
         </div>
       ),
@@ -138,18 +141,22 @@ export function AdminCategoriesClient() {
       key: "parent",
       header: "Parent",
       render: (c) => c.parent
-        ? <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">{c.parent.name}</span>
-        : <span className="text-neutral-300 text-xs">—</span>,
+        ? <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-medium text-amber-700">{c.parent.name}</span>
+        : <span className="rounded-full bg-neutral-900 px-2.5 py-0.5 text-xs font-semibold text-white">Main</span>,
     },
     {
       key: "products",
       header: "Products",
-      render: (c) => <span className="font-medium text-neutral-700">{c._count?.products ?? 0}</span>,
+      render: (c) => <span className="font-semibold text-neutral-700">{c._count?.products ?? 0}</span>,
     },
     {
       key: "children",
       header: "Sub-categories",
-      render: (c) => <span className="text-neutral-500">{c._count?.children ?? 0}</span>,
+      render: (c) => (
+        <span className={`text-sm ${(c._count?.children ?? 0) > 0 ? "font-medium text-neutral-700" : "text-neutral-300"}`}>
+          {c._count?.children ?? 0}
+        </span>
+      ),
     },
     {
       key: "actions",
@@ -163,6 +170,16 @@ export function AdminCategoriesClient() {
     },
   ];
 
+  // Sort: parents first, then their children grouped under them
+  const parentCats = filtered.filter(c => !c.parentId);
+  const sortedCategories = parentCats.flatMap(parent => [
+    parent,
+    ...filtered.filter(c => c.parentId === parent.id),
+  ]);
+  // append any remaining (shouldn't happen but safe fallback)
+  const remaining = filtered.filter(c => !sortedCategories.find(s => s.id === c.id));
+  const displayCats = [...sortedCategories, ...remaining];
+
   const parentOptions = cats.filter((c) => !editTarget || c.id !== editTarget.id);
 
   return (
@@ -170,7 +187,9 @@ export function AdminCategoriesClient() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-neutral-900">Categories</h1>
-          <p className="mt-0.5 text-sm text-neutral-500">{cats.length} total categories</p>
+          <p className="mt-0.5 text-sm text-neutral-500">
+            {cats.filter(c => !c.parentId).length} main &nbsp;·&nbsp; {cats.filter(c => !!c.parentId).length} sub-categories
+          </p>
         </div>
         <button onClick={openCreate} className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">
           <Plus size={15} /> Add Category
@@ -179,7 +198,7 @@ export function AdminCategoriesClient() {
 
       <DataTable
         columns={columns}
-        data={filtered}
+        data={displayCats}
         loading={loading}
         searchValue={search}
         onSearchChange={setSearch}

@@ -35,10 +35,15 @@ export const useCartStore = create<CartState>()(
 
       addItem: (product, quantity = 1, variantId, size, color) => {
         set((state) => {
+          const normSize = size ? size.trim() : undefined;
+          const normColor = color ? color.trim() : undefined;
+
           const existingIndex = state.items.findIndex(
             (item) =>
               item.product.id === product.id &&
-              item.variantId === variantId
+              (item.size ?? "") === (normSize ?? "") &&
+              (item.color ?? "") === (normColor ?? "") &&
+              (item.variantId ?? "") === (variantId ?? "")
           );
 
           if (existingIndex >= 0) {
@@ -50,14 +55,16 @@ export const useCartStore = create<CartState>()(
             return { items: updated };
           }
 
+          const newItemId = `${product.id}__${normSize ?? "nosize"}__${normColor ?? "nocolor"}__${variantId ?? "default"}`;
+
           const newItem: CartItem = {
-            id: `${product.id}-${variantId ?? "default"}-${Date.now()}`,
+            id: newItemId,
             product,
             variantId,
             quantity,
             price: product.price,
-            size,
-            color,
+            size: normSize,
+            color: normColor,
           };
 
           return { items: [...state.items, newItem] };

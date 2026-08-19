@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw, CheckCircle, Loader2, GitCompare } from "lucide-react";
+import { ShoppingBag, Heart, Share2, ChevronRight, Minus, Plus, Star, Shield, Truck, RefreshCw, CheckCircle, Loader2, GitCompare, Check, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +12,13 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart.store";
 import { useWishlistStore } from "@/store/wishlist.store";
 import { useAuthStore } from "@/store/auth.store";
+import { useUIStore } from "@/store/ui.store";
 import { useRecentlyViewedStore } from "@/store/recently-viewed.store";
 import { useCompareStore } from "@/store/compare.store";
 import { SizeGuide } from "@/components/products/size-guide";
 import { StockAlert } from "@/components/products/stock-alert";
 import { formatPrice, calculateDiscount, getInitials } from "@/lib/utils";
+import { getProductAvailableOptions, getColorHex } from "@/lib/product-variants";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -36,10 +38,13 @@ interface ProductDetailClientProps {
 }
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
+  const { sizes, colors, hasSizes, hasColors, sizeType } = getProductAvailableOptions(product);
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(colors[0]?.name ?? null);
   const [quantity, setQuantity] = useState(1);
+  const [sizeError, setSizeError] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews">("description");
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
@@ -54,6 +59,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [reviewsFetched, setReviewsFetched] = useState(false);
 
   const addItem = useCartStore((s) => s.addItem);
+  const openCart = useUIStore((s) => s.openCart);
   const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const user = useAuthStore((s) => s.user);
@@ -117,17 +123,31 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     ? calculateDiscount(product.price, product.comparePrice)
     : null;
 
-  const sizes = [...new Set(product.variants.map((v) => v.size).filter(Boolean))];
-  const colors = [...new Set(product.variants.map((v) => v.color).filter(Boolean))];
-
   const handleAddToCart = () => {
     if (!isLoggedIn()) {
       toast.error("Please login to add items to your cart", { icon: "🔒", duration: 3000 });
       router.push("/login");
       return;
     }
+
+    if (hasSizes && !selectedSize) {
+      setSizeError(true);
+      toast.error(
+        sizeType === "shoes"
+          ? "Please select a shoe size before adding to cart"
+          : "Please select a size (Small, Medium, Large, Extra Large) before adding to cart",
+        { icon: "⚠️", duration: 3500 }
+      );
+      return;
+    }
+
+    setSizeError(false);
     addItem(product, quantity, undefined, selectedSize ?? undefined, selectedColor ?? undefined);
-    toast.success("Added to cart!", { icon: "🛍️" });
+    toast.success(
+      `Added to cart! ${selectedSize ? `(Size: ${selectedSize})` : ""}${selectedColor ? ` [${selectedColor}]` : ""}`,
+      { icon: "🛍️", duration: 2500 }
+    );
+    openCart();
   };
 
   const handleBuyNow = () => {
@@ -136,7 +156,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       router.push("/login");
       return;
     }
-    handleAddToCart();
+    if (hasSizes && !selectedSize) {
+      setSizeError(true);
+      toast.error(
+        sizeType === "shoes"
+          ? "Please select a shoe size before proceeding to checkout"
+          : "Please select a size (Small, Medium, Large, Extra Large) before proceeding to checkout",
+        { icon: "⚠️", duration: 3500 }
+      );
+      return;
+    }
+    setSizeError(false);
+    addItem(product, quantity, undefined, selectedSize ?? undefined, selectedColor ?? undefined);
     router.push("/checkout");
   };
 
@@ -292,59 +323,117 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           <Separator />
 
           {/* Sizes */}
-          {sizes.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-neutral-900">Size</h3>
-                <SizeGuide type="clothing" />
+          {hasSizes && (
+            <div className={`rounded-xl p-3 transition-colors ${sizeError ? "bg-red-50/80 border border-red-200" : ""}`}>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-neutral-900">
+                    {sizeType === "shoes" ? "Shoe Size" : "Select Size"}
+                  </h3>
+                  {selectedSize && (
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full">
+                      {sizes.find((s) => s.shortLabel === selectedSize)?.label ?? selectedSize}
+                    </span>
+                  )}
+                </div>
+                <SizeGuide type={sizeType === "shoes" ? "shoes" : "clothing"} />
               </div>
+
+              {sizeError && (
+                <p className="text-xs text-red-600 font-medium mb-2.5 flex items-center gap-1">
+                  <AlertCircle size={13} />
+                  Please choose a {sizeType === "shoes" ? "shoe size" : "size (Small, Medium, Large, Extra Large)"} to continue
+                </p>
+              )}
+
               <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size === selectedSize ? null : size!)}
-                    className={`h-10 min-w-[2.5rem] px-3 rounded-md border text-sm font-medium transition-all ${
-                      selectedSize === size
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "border-neutral-300 text-neutral-700 hover:border-neutral-900"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {sizes.map((sizeOpt) => {
+                  const isSelected = selectedSize === sizeOpt.shortLabel;
+                  return (
+                    <button
+                      key={sizeOpt.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSize(isSelected ? null : sizeOpt.shortLabel);
+                        setSizeError(false);
+                      }}
+                      className={`group relative flex flex-col items-center justify-center min-w-[3.25rem] px-3.5 py-2 rounded-xl border text-sm font-semibold transition-all duration-200 ${
+                        isSelected
+                          ? "border-neutral-900 bg-neutral-900 text-white shadow-md scale-105"
+                          : sizeError
+                          ? "border-red-300 bg-white text-neutral-800 hover:border-neutral-900"
+                          : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900 hover:text-neutral-900 shadow-2xs"
+                      }`}
+                      title={sizeOpt.label}
+                    >
+                      <span className="text-sm tracking-tight">{sizeOpt.shortLabel}</span>
+                      {sizeOpt.label !== sizeOpt.shortLabel && (
+                        <span className={`text-[10px] font-normal leading-none mt-0.5 opacity-80 ${isSelected ? "text-neutral-200" : "text-neutral-400"}`}>
+                          {sizeOpt.label.length > 12 ? sizeOpt.label.split("(")[0].trim() : sizeOpt.label}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Colors */}
-          {colors.length > 0 && (
+          {hasColors && (
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-3">
-                Color{selectedColor && `: ${selectedColor}`}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {colors.map((color) => {
-                  const variant = product.variants.find((v) => v.color === color);
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-sm font-semibold text-neutral-900">
+                  Color: <span className="font-normal text-neutral-600">{selectedColor ?? "Choose a color"}</span>
+                </h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {colors.map((c) => {
+                  const isSelected = selectedColor === c.name;
+                  const isLight = c.hex.toLowerCase() === "#ffffff" || c.hex.toLowerCase() === "#f8fafc" || c.hex.toLowerCase() === "#f1f5f9";
                   return (
                     <button
-                      key={color}
-                      onClick={() =>
-                        setSelectedColor(color === selectedColor ? null : color!)
-                      }
-                      className={`h-8 w-8 rounded-full border-2 transition-all ${
-                        selectedColor === color
-                          ? "border-neutral-900 scale-110"
-                          : "border-transparent hover:border-neutral-400"
+                      key={c.name}
+                      type="button"
+                      onClick={() => setSelectedColor(isSelected ? null : c.name)}
+                      className={`group relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 ${
+                        isSelected
+                          ? "ring-2 ring-neutral-900 ring-offset-2 scale-110 shadow-sm"
+                          : "hover:scale-105 hover:ring-1 hover:ring-neutral-400 hover:ring-offset-1"
                       }`}
-                      style={{
-                        backgroundColor: variant?.colorHex ?? "#ccc",
-                      }}
-                      aria-label={color ?? "Color option"}
-                      title={color ?? undefined}
-                    />
+                      style={{ backgroundColor: c.hex }}
+                      aria-label={c.name}
+                      title={c.name}
+                    >
+                      {/* Checkmark icon on active */}
+                      {isSelected && (
+                        <Check size={14} className={isLight ? "text-neutral-900" : "text-white"} strokeWidth={3} />
+                      )}
+                    </button>
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Active selection summary chip */}
+          {(selectedSize || selectedColor) && (
+            <div className="flex items-center gap-2 flex-wrap rounded-xl bg-neutral-50/90 border border-neutral-200/80 px-3.5 py-2 text-xs text-neutral-700">
+              <span className="font-semibold text-neutral-900 text-[11px] uppercase tracking-wide">Selected:</span>
+              {selectedSize && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-white border border-neutral-200 px-2 py-0.5 font-medium text-neutral-800 shadow-2xs">
+                  Size: <strong>{selectedSize}</strong>
+                </span>
+              )}
+              {selectedColor && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-white border border-neutral-200 px-2 py-0.5 font-medium text-neutral-800 shadow-2xs">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border border-neutral-300 inline-block"
+                    style={{ backgroundColor: getColorHex(selectedColor) }}
+                  />
+                  Color: <strong>{selectedColor}</strong>
+                </span>
+              )}
             </div>
           )}
 

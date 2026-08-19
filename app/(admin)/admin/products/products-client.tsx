@@ -35,14 +35,14 @@ interface Product {
   _count?: { reviews: number; orderItems: number };
 }
 
-interface Category { id: string; name: string; slug: string }
+interface Category { id: string; name: string; slug: string; parent?: { id: string; name: string } | null }
 interface Brand { id: string; name: string; slug: string }
 
 const EMPTY_FORM = {
   name: "", slug: "", description: "", price: "",
   comparePrice: "", categoryId: "", brandId: "", tags: "",
   stock: "0", isFeatured: false, isNew: true,
-  isBestSeller: false, isTrending: false, isActive: true,
+  isTrending: false, isActive: true,
   imageUrl: "",
 };
 
@@ -107,7 +107,7 @@ export function AdminProductsClient() {
       tags: p.tags.join(", "),
       stock: String(p.stock),
       isFeatured: p.isFeatured, isNew: p.isNew,
-      isBestSeller: p.isBestSeller, isTrending: p.isTrending, isActive: p.isActive,
+      isTrending: p.isTrending, isActive: p.isActive,
       imageUrl: p.images?.[0]?.url ?? "",
     });
     setModalOpen(true);
@@ -224,7 +224,6 @@ export function AdminProductsClient() {
         <div className="flex flex-wrap gap-1">
           {p.isFeatured && <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">Featured</span>}
           {p.isNew && <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">New</span>}
-          {p.isBestSeller && <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">Best Seller</span>}
           {p.isTrending && <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-700">Trending</span>}
         </div>
       ),
@@ -314,7 +313,21 @@ export function AdminProductsClient() {
           <FormField label="Category" required>
             <Select value={form.categoryId} onChange={(e) => setF("categoryId", e.target.value)}>
               <option value="">Select category</option>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {/* Top-level (parent) categories */}
+              {categories.filter(c => !c.parent).map((parent) => (
+                <optgroup key={parent.id} label={`── ${parent.name}`}>
+                  {/* option for the parent itself */}
+                  <option value={parent.id}>{parent.name} (All)</option>
+                  {/* children of this parent */}
+                  {categories.filter(c => c.parent?.id === parent.id).map((child) => (
+                    <option key={child.id} value={child.id}>{child.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+              {/* Orphan subcategories with no parent in our list */}
+              {categories.filter(c => c.parent && !categories.find(p => p.id === c.parent?.id && !p.parent)).map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
             </Select>
           </FormField>
           <FormField label="Brand">
@@ -342,8 +355,8 @@ export function AdminProductsClient() {
           </div>
 
           {/* Toggles */}
-          <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {(["isFeatured", "isNew", "isBestSeller", "isTrending", "isActive"] as const).map((key) => (
+          <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {(["isFeatured", "isNew", "isTrending", "isActive"] as const).map((key) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"

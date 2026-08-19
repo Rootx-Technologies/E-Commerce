@@ -7,8 +7,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, Number(searchParams.get("page") ?? 1));
     const limit = Math.min(50, Number(searchParams.get("limit") ?? ITEMS_PER_PAGE));
-    const category = searchParams.get("category");
-    const brand = searchParams.get("brand");
+    const categoryParam = searchParams.get("category");
+    const brandParam = searchParams.get("brand");
+    const sizeParam = searchParams.get("size");
     const search = searchParams.get("search");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { db } = await import("@/lib/db");
     const { getCache, setCache } = await import("@/lib/redis");
 
-    const cacheKey = `products:${JSON.stringify({ page, limit, category, brand, search, minPrice, maxPrice, sort, filter })}`;
+    const cacheKey = `products:${JSON.stringify({ page, limit, category: categoryParam, brand: brandParam, size: sizeParam, search, minPrice, maxPrice, sort, filter })}`;
     const cached = await getCache<PaginatedResponse<Product>>(cacheKey);
     if (cached) {
       return Response.json({ success: true, data: cached } satisfies ApiResponse<PaginatedResponse<Product>>);
@@ -26,8 +27,30 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const where: Record<string, unknown> = { isActive: true };
 
-    if (category) where.category = { slug: category };
-    if (brand) where.brand = { slug: brand };
+    if (categoryParam) {
+      const slugs = categoryParam.split(",");
+      where.category = {
+        OR: [
+          { slug: { in: slugs } },
+          { parent: { slug: { in: slugs } } }
+        ]
+      };
+    }
+    
+    if (brandParam) {
+      const slugs = brandParam.split(",");
+      where.brand = { slug: { in: slugs } };
+    }
+    
+    if (sizeParam) {
+      const sizes = sizeParam.split(",");
+      where.variants = {
+        some: {
+          size: { in: sizes }
+        }
+      };
+    }
+
     if (filter === "new") where.isNew = true;
     if (filter === "featured") where.isFeatured = true;
     if (filter === "bestseller") where.isBestSeller = true;

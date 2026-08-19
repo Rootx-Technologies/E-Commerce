@@ -10,6 +10,7 @@ import { useUIStore } from "@/store/ui.store";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/lib/utils";
+import { getColorHex } from "@/lib/product-variants";
 import { SHIPPING_THRESHOLD } from "@/lib/constants";
 
 export function CartDrawer() {
@@ -95,7 +96,22 @@ export function CartDrawer() {
                           {item.product.name}
                         </Link>
                         {(item.size || item.color) && (
-                          <p className="text-[10px] text-neutral-500">{[item.size, item.color].filter(Boolean).join(" · ")}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap my-0.5">
+                            {item.size && (
+                              <span className="inline-flex items-center rounded-md bg-neutral-100 border border-neutral-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-800">
+                                Size: <span className="ml-1 text-amber-700 font-bold">{item.size}</span>
+                              </span>
+                            )}
+                            {item.color && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 border border-neutral-200/80 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700">
+                                <span
+                                  className="h-2 w-2 rounded-full border border-neutral-300"
+                                  style={{ backgroundColor: getColorHex(item.color) }}
+                                />
+                                {item.color}
+                              </span>
+                            )}
+                          </div>
                         )}
                         <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-0 rounded-md border border-neutral-200">

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X, ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { X, ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, ExternalLink, Check, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUIStore } from "@/store/ui.store";
 import { useCartStore } from "@/store/cart.store";
@@ -12,31 +12,43 @@ import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
+import { getProductAvailableOptions, getColorHex } from "@/lib/product-variants";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export function QuickViewModal() {
-  const { quickViewProductId, closeQuickView } = useUIStore();
+  const { quickViewProductId, closeQuickView, openCart } = useUIStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [sizeError, setSizeError] = useState(false);
 
   const addItem = useCartStore((s) => s.addItem);
   const { toggleItemWithSync, isInWishlist } = useWishlistStore();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const router = useRouter();
 
+  const { sizes, colors, hasSizes, hasColors, sizeType } = product
+    ? getProductAvailableOptions(product)
+    : { sizes: [], colors: [], hasSizes: false, hasColors: false, sizeType: "generic" as const };
+
   // Fetch product when modal opens
   useEffect(() => {
-    if (!quickViewProductId) { setProduct(null); setSelectedImage(0); setQuantity(1); return; }
+    if (!quickViewProductId) { setProduct(null); setSelectedImage(0); setSelectedSize(null); setSelectedColor(null); setQuantity(1); setSizeError(false); return; }
     setLoading(true);
     fetch(`/api/products/${quickViewProductId}/detail`)
       .then((r) => r.json())
-      .then((d) => { if (d.success) setProduct(d.data); })
+      .then((d) => {
+        if (d.success) {
+          setProduct(d.data);
+          const opts = getProductAvailableOptions(d.data);
+          if (opts.colors.length > 0) setSelectedColor(opts.colors[0].name);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [quickViewProductId]);
@@ -56,8 +68,6 @@ export function QuickViewModal() {
 
   const inWishlist = product ? isInWishlist(product.id) : false;
   const discount = product?.comparePrice ? calculateDiscount(product.price, product.comparePrice) : null;
-  const sizes = product ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))] : [];
-  const colors = product ? [...new Set(product.variants.map((v) => v.color).filter(Boolean))] : [];
 
   const handleAddToCart = useCallback(() => {
     if (!product) return;
@@ -67,10 +77,27 @@ export function QuickViewModal() {
       router.push("/login");
       return;
     }
+
+    if (hasSizes && !selectedSize) {
+      setSizeError(true);
+      toast.error(
+        sizeType === "shoes"
+          ? "Please select a shoe size"
+          : "Please select a size (Small, Medium, Large, Extra Large)",
+        { icon: "⚠️" }
+      );
+      return;
+    }
+
+    setSizeError(false);
     addItem(product, quantity, undefined, selectedSize ?? undefined, selectedColor ?? undefined);
-    toast.success("Added to cart!", { icon: "🛍️" });
+    toast.success(
+      `Added to cart! ${selectedSize ? `(Size: ${selectedSize})` : ""}${selectedColor ? ` [${selectedColor}]` : ""}`,
+      { icon: "🛍️" }
+    );
     closeQuickView();
-  }, [product, quantity, selectedSize, selectedColor, isLoggedIn, addItem, closeQuickView, router]);
+    openCart();
+  }, [product, quantity, selectedSize, selectedColor, isLoggedIn, hasSizes, sizeType, addItem, closeQuickView, openCart, router]);
 
   return (
     <AnimatePresence>
@@ -193,38 +220,76 @@ export function QuickViewModal() {
                   </div>
 
                   {/* Sizes */}
-                  {sizes.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-neutral-700 mb-2">Size</p>
+                  {hasSizes && (
+                    <div className={`rounded-xl p-2.5 transition-colors ${sizeError ? "bg-red-50 border border-red-200" : ""}`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs font-semibold text-neutral-700">
+                          {sizeType === "shoes" ? "Shoe Size" : "Size"}
+                          {selectedSize && (
+                            <span className="ml-1.5 font-bold text-amber-700">
+                              ({sizes.find((s) => s.shortLabel === selectedSize)?.label ?? selectedSize})
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      {sizeError && (
+                        <p className="text-[11px] text-red-600 font-medium mb-1.5 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          Please choose a size to continue
+                        </p>
+                      )}
                       <div className="flex flex-wrap gap-1.5">
-                        {sizes.map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => setSelectedSize(size === selectedSize ? null : size!)}
-                            className={`h-8 min-w-[2rem] px-2.5 rounded-lg border text-xs font-medium transition-all ${selectedSize === size ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-700 hover:border-neutral-900"}`}
-                          >
-                            {size}
-                          </button>
-                        ))}
+                        {sizes.map((sizeOpt) => {
+                          const isSelected = selectedSize === sizeOpt.shortLabel;
+                          return (
+                            <button
+                              key={sizeOpt.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSize(isSelected ? null : sizeOpt.shortLabel);
+                                setSizeError(false);
+                              }}
+                              className={`h-8 min-w-[2.25rem] px-2.5 rounded-lg border text-xs font-semibold transition-all ${
+                                isSelected
+                                  ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
+                                  : sizeError
+                                  ? "border-red-300 bg-white text-neutral-800"
+                                  : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900"
+                              }`}
+                              title={sizeOpt.label}
+                            >
+                              {sizeOpt.shortLabel}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
 
                   {/* Colors */}
-                  {colors.length > 0 && (
+                  {hasColors && (
                     <div>
-                      <p className="text-xs font-semibold text-neutral-700 mb-2">Color{selectedColor && `: ${selectedColor}`}</p>
+                      <p className="text-xs font-semibold text-neutral-700 mb-1.5">
+                        Color: <span className="font-normal text-neutral-600">{selectedColor ?? "Choose"}</span>
+                      </p>
                       <div className="flex flex-wrap gap-2">
-                        {colors.map((color) => {
-                          const v = product.variants.find((vr) => vr.color === color);
+                        {colors.map((c) => {
+                          const isSelected = selectedColor === c.name;
+                          const isLight = c.hex.toLowerCase() === "#ffffff" || c.hex.toLowerCase() === "#f8fafc" || c.hex.toLowerCase() === "#f1f5f9";
                           return (
                             <button
-                              key={color}
-                              onClick={() => setSelectedColor(color === selectedColor ? null : color!)}
-                              className={`h-7 w-7 rounded-full border-2 transition-all ${selectedColor === color ? "border-neutral-900 scale-110" : "border-transparent hover:border-neutral-400"}`}
-                              style={{ backgroundColor: v?.colorHex ?? "#ccc" }}
-                              title={color ?? undefined}
-                            />
+                              key={c.name}
+                              type="button"
+                              onClick={() => setSelectedColor(isSelected ? null : c.name)}
+                              className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${
+                                isSelected ? "ring-2 ring-neutral-900 ring-offset-1 scale-110" : "hover:scale-105"
+                              }`}
+                              style={{ backgroundColor: c.hex }}
+                              title={c.name}
+                              aria-label={c.name}
+                            >
+                              {isSelected && <Check size={12} className={isLight ? "text-neutral-900" : "text-white"} strokeWidth={3} />}
+                            </button>
                           );
                         })}
                       </div>

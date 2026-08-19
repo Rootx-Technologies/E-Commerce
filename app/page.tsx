@@ -25,7 +25,6 @@ export default async function HomePage() {
   const [
     featuredProducts,
     newArrivals,
-    bestSellers,
     trending,
     categories,
     brands,
@@ -41,12 +40,6 @@ export default async function HomePage() {
       where: { isActive: true, isNew: true },
       take: 8,
       orderBy: { createdAt: "desc" },
-      include: { images: true, variants: true, category: true, brand: true },
-    }),
-    db.product.findMany({
-      where: { isActive: true, isBestSeller: true },
-      take: 8,
-      orderBy: { reviewCount: "desc" },
       include: { images: true, variants: true, category: true, brand: true },
     }),
     db.product.findMany({
@@ -133,20 +126,6 @@ export default async function HomePage() {
 
       {/* Promotional Banners — DB se (admin se control karo) */}
       <PromotionalBanner banners={promotionalBanners} />
-
-      {/* Best Sellers */}
-      {bestSellers.length > 0 && (
-        <section className="py-16 bg-neutral-50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              title="Best Sellers"
-              subtitle="Top Picks"
-              viewAllHref="/products?filter=bestseller"
-            />
-            <ProductGrid products={bestSellers as unknown as Product[]} columns={4} />
-          </div>
-        </section>
-      )}
 
       {/* Trending */}
       {trending.length > 0 && (

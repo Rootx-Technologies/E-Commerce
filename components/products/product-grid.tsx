@@ -25,7 +25,7 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-3.5 md:gap-4`}>
+      <div className={`grid ${columnClasses[columns]} gap-2 sm:gap-2.5`}>
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="space-y-3">
             <Skeleton className="aspect-[3/4] w-full rounded-xl" />
@@ -51,7 +51,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-3.5 md:gap-4 items-stretch`}>
+      <div className={`grid ${columnClasses[columns]} gap-2 sm:gap-2.5 items-stretch`}>
       {products.map((product, index) => (
         <motion.div
           key={product.id}

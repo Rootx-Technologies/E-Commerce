@@ -27,7 +27,7 @@ interface SocialLinksState {
 const DEFAULT_FOOTER_LINKS: FooterLinksState = {
   shop: [
     { label: "New Arrivals", href: "/products?filter=new" },
-    { label: "Best Sellers", href: "/products?filter=bestseller" },
+    { label: "Trending", href: "/products?filter=trending" },
     { label: "Flash Sales", href: "/deals" },
     { label: "All Products", href: "/products" },
     { label: "Brands", href: "/brands" },

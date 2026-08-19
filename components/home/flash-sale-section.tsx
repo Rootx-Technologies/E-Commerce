@@ -73,9 +73,9 @@ export function FlashSaleSection({ products, endTime }: FlashSaleSectionProps) {
         </div>
 
         {/* Products */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 items-stretch">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-2.5 items-stretch">
           {products.slice(0, 5).map((product) => (
-            <div key={product.id} className="bg-neutral-900 rounded-xl p-2 sm:p-3 flex flex-col">
+            <div key={product.id} className="bg-neutral-900 rounded-xl p-1.5 flex flex-col">
               <div className="flex-1">
                 <ProductCard product={product} />
               </div>
