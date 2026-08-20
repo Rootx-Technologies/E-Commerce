@@ -409,6 +409,23 @@ export type EnumOfferTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumOfferTypeFilter<$PrismaModel>
 }
 
+export type EnumBannerTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.BannerType | Prisma.EnumBannerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel> | $Enums.BannerType
+}
+
+export type EnumBannerTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BannerType | Prisma.EnumBannerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBannerTypeWithAggregatesFilter<$PrismaModel> | $Enums.BannerType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel>
+}
+
 export type EnumCreditTransactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.CreditTransactionType | Prisma.EnumCreditTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.CreditTransactionType[] | Prisma.ListEnumCreditTransactionTypeFieldRefInput<$PrismaModel>
@@ -851,6 +868,23 @@ export type NestedEnumOfferTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumOfferTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumOfferTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumBannerTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.BannerType | Prisma.EnumBannerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel> | $Enums.BannerType
+}
+
+export type NestedEnumBannerTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BannerType | Prisma.EnumBannerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BannerType[] | Prisma.ListEnumBannerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBannerTypeWithAggregatesFilter<$PrismaModel> | $Enums.BannerType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBannerTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumCreditTransactionTypeFilter<$PrismaModel = never> = {

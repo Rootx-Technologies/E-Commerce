@@ -1999,7 +1999,9 @@ export type OfferProductScalarFieldEnum = (typeof OfferProductScalarFieldEnum)[k
 
 export const BannerScalarFieldEnum = {
   id: 'id',
+  type: 'type',
   title: 'title',
+  brandName: 'brandName',
   subtitle: 'subtitle',
   image: 'image',
   link: 'link',
@@ -2275,6 +2277,20 @@ export type EnumOfferTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'OfferType[]'
  */
 export type ListEnumOfferTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OfferType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BannerType'
+ */
+export type EnumBannerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BannerType'>
+    
+
+
+/**
+ * Reference to a field of type 'BannerType[]'
+ */
+export type ListEnumBannerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BannerType[]'>
     
 
 

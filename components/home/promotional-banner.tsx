@@ -4,36 +4,32 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface Banner {
-  id: string;
-  title: string;
-  subtitle?: string | null;
-  image: string;
-  link?: string | null;
-  position: number;
-}
+import type { Banner } from "@/types";
 
 interface PromotionalBannerProps {
   banners: Banner[];
 }
 
-// Fallback banners jab DB mein koi banner na ho
+// Fallback banners jab DB mein koi PROMOTIONAL banner na ho
 const fallbackBanners: Banner[] = [
   {
     id: "f1",
+    type: "PROMOTIONAL",
     title: "New Season Collection",
     subtitle: "Up to 50% off selected items",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
     link: "/deals",
+    isActive: true,
     position: 1,
   },
   {
     id: "f2",
+    type: "PROMOTIONAL",
     title: "New Electronics",
     subtitle: "Latest gadgets at best prices",
     image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800&q=80",
     link: "/products?category=electronics",
+    isActive: true,
     position: 2,
   },
 ];

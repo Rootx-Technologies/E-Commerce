@@ -26,7 +26,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   try {
     const body = await request.json();
-    const { title, subtitle, imageBase64, imageUrl, link, isActive, position } = body;
+    const { title, subtitle, brandName, type, imageBase64, imageUrl, link, isActive, position } = body;
 
     if (!title) {
       return Response.json(
@@ -61,7 +61,9 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const banner = await db.banner.create({
       data: {
+        type: type ?? "HERO",
         title,
+        brandName: brandName || null,
         subtitle: subtitle || null,
         image: finalImageUrl,
         publicId,

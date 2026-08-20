@@ -294,7 +294,9 @@ export type OfferProductScalarFieldEnum = (typeof OfferProductScalarFieldEnum)[k
 
 export const BannerScalarFieldEnum = {
   id: 'id',
+  type: 'type',
   title: 'title',
+  brandName: 'brandName',
   subtitle: 'subtitle',
   image: 'image',
   link: 'link',

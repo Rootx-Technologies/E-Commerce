@@ -67,6 +67,15 @@ export const OfferType = {
 export type OfferType = (typeof OfferType)[keyof typeof OfferType]
 
 
+export const BannerType = {
+  HERO: 'HERO',
+  PROMOTIONAL: 'PROMOTIONAL',
+  ANNOUNCEMENT: 'ANNOUNCEMENT'
+} as const
+
+export type BannerType = (typeof BannerType)[keyof typeof BannerType]
+
+
 export const CreditTransactionType = {
   EARNED_PURCHASE: 'EARNED_PURCHASE',
   EARNED_REFERRAL: 'EARNED_REFERRAL',

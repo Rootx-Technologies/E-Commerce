@@ -25,10 +25,10 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={`grid ${columnClasses[columns]} gap-2 sm:gap-2.5`}>
+      <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-4`}>
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="space-y-3">
-            <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+            <Skeleton className="aspect-[4/5] w-full rounded-xl" />
             <Skeleton className="h-3 w-1/3" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-2/3" />
@@ -51,7 +51,7 @@ export function ProductGrid({
   }
 
   return (
-      <div className={`grid ${columnClasses[columns]} gap-2 sm:gap-2.5 items-stretch`}>
+      <div className={`grid ${columnClasses[columns]} gap-3 sm:gap-4 items-stretch`}>
       {products.map((product, index) => (
         <motion.div
           key={product.id}

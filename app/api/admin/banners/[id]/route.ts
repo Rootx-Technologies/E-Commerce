@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: Params): Promise<R
 
   try {
     const body = await request.json();
-    const { title, subtitle, imageBase64, imageUrl, link, isActive, position } = body;
+    const { title, subtitle, brandName, type, imageBase64, imageUrl, link, isActive, position } = body;
 
     const existing = await db.banner.findUnique({ where: { id } });
     if (!existing) {
@@ -47,7 +47,9 @@ export async function PATCH(request: NextRequest, { params }: Params): Promise<R
     }
 
     const updateData: Record<string, unknown> = {};
+    if (type !== undefined) updateData.type = type;
     if (title !== undefined) updateData.title = title;
+    if (brandName !== undefined) updateData.brandName = brandName || null;
     if (subtitle !== undefined) updateData.subtitle = subtitle || null;
     if (link !== undefined) updateData.link = link || null;
     if (isActive !== undefined) updateData.isActive = isActive;

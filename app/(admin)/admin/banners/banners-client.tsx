@@ -11,7 +11,9 @@ import { ImageUploader } from "@/components/admin/image-uploader";
 
 interface Banner {
   id: string;
+  type: "HERO" | "PROMOTIONAL" | "ANNOUNCEMENT";
   title: string;
+  brandName?: string | null;
   subtitle?: string | null;
   image: string;
   link?: string | null;
@@ -21,7 +23,14 @@ interface Banner {
 }
 
 const EMPTY = {
-  title: "", subtitle: "", imageUrl: "", link: "", isActive: true, position: "",
+  type: "HERO" as "HERO" | "PROMOTIONAL" | "ANNOUNCEMENT",
+  title: "",
+  brandName: "",
+  subtitle: "",
+  imageUrl: "",
+  link: "",
+  isActive: true,
+  position: "",
 };
 
 export function AdminBannersClient() {
@@ -49,7 +58,9 @@ export function AdminBannersClient() {
   function openEdit(b: Banner) {
     setEditTarget(b);
     setForm({
+      type: b.type,
       title: b.title,
+      brandName: b.brandName ?? "",
       subtitle: b.subtitle ?? "",
       imageUrl: b.image,
       link: b.link ?? "",
@@ -64,10 +75,12 @@ export function AdminBannersClient() {
 
   async function handleSave() {
     if (!form.title) { toast.error("Title is required"); return; }
-    if (!editTarget && !form.imageUrl) { toast.error("Image URL is required"); return; }
+    if (!editTarget && !form.imageUrl && form.type !== "ANNOUNCEMENT") { toast.error("Image URL is required"); return; }
     setSaving(true);
     const payload = {
+      type: form.type,
       title: form.title,
+      brandName: form.brandName || null,
       subtitle: form.subtitle || null,
       imageUrl: form.imageUrl || undefined,
       link: form.link || null,
@@ -139,12 +152,20 @@ export function AdminBannersClient() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-neutral-800 truncate">{b.title}</p>
                   <span className="flex-shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500">
                     #{b.position}
                   </span>
+                  <span className={`flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    b.type === "HERO" ? "bg-violet-100 text-violet-700" :
+                    b.type === "PROMOTIONAL" ? "bg-amber-100 text-amber-700" :
+                    "bg-green-100 text-green-700"
+                  }`}>
+                    {b.type === "HERO" ? "Hero Slide" : b.type === "PROMOTIONAL" ? "Promo Card" : "Announcement"}
+                  </span>
                 </div>
+                {b.brandName && <p className="text-xs font-medium text-neutral-600 truncate uppercase tracking-wider">{b.brandName}</p>}
                 {b.subtitle && <p className="text-sm text-neutral-500 truncate">{b.subtitle}</p>}
                 {b.link && <p className="text-xs text-blue-500 truncate">{b.link}</p>}
               </div>
@@ -166,23 +187,58 @@ export function AdminBannersClient() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editTarget ? "Edit Banner" : "Add New Banner"} size="md">
         <div className="flex flex-col gap-4">
+          {/* Banner Type */}
+          <FormField label="Banner Type" required hint="Hero = homepage slider · Promo = mid-page card · Announcement = top bar text">
+            <div className="flex gap-2">
+              {(["HERO", "PROMOTIONAL", "ANNOUNCEMENT"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setF("type", t)}
+                  className={`flex-1 rounded-lg border py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    form.type === t
+                      ? t === "HERO" ? "border-violet-500 bg-violet-50 text-violet-700"
+                        : t === "PROMOTIONAL" ? "border-amber-500 bg-amber-50 text-amber-700"
+                        : "border-green-500 bg-green-50 text-green-700"
+                      : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                  }`}
+                >
+                  {t === "HERO" ? "Hero Slide" : t === "PROMOTIONAL" ? "Promo Card" : "Announce"}
+                </button>
+              ))}
+            </div>
+          </FormField>
+
           <FormField label="Title" required>
-            <Input value={form.title} onChange={(e) => setF("title", e.target.value)} placeholder="Eid Sale — 50% Off" />
+            <Input value={form.title} onChange={(e) => setF("title", e.target.value)} placeholder={form.type === "HERO" ? "New Arrivals" : form.type === "PROMOTIONAL" ? "Eid Sale — 50% Off" : "FREE SHIPPING ON PREPAID ORDERS"} />
           </FormField>
-          <FormField label="Subtitle">
-            <Textarea rows={2} value={form.subtitle as string} onChange={(e) => setF("subtitle", e.target.value)} placeholder="Limited time offer on all clothing" />
+
+          {/* Brand Name — only relevant for Hero slides */}
+          {form.type === "HERO" && (
+            <FormField label="Brand Name" hint="Shown above the title on the hero slide (e.g. POLO REPUBLICA)">
+              <Input value={form.brandName as string} onChange={(e) => setF("brandName", e.target.value)} placeholder="POLO REPUBLICA" />
+            </FormField>
+          )}
+
+          <FormField label={form.type === "ANNOUNCEMENT" ? "Message (subtitle)" : "Subtitle / Description"}>
+            <Textarea rows={2} value={form.subtitle as string} onChange={(e) => setF("subtitle", e.target.value)} placeholder={form.type === "HERO" ? "Crafted from lightweight, breathable fabric..." : "Limited time offer on all clothing"} />
           </FormField>
-          <ImageUploader
-            label="Banner Image"
-            hint={editTarget ? "Leave empty to keep existing image" : "Required"}
-            folder="marqet/banners"
-            value={form.imageUrl as string}
-            onChange={(url) => setF("imageUrl", url)}
-          />
-          {/* Legacy URL preview removed — uploader handles preview */}
-          <FormField label="Link (URL)" hint="Optional — where the banner clicks to">
-            <Input value={form.link as string} onChange={(e) => setF("link", e.target.value)} placeholder="/deals" />
+
+          {/* No image needed for announcement type */}
+          {form.type !== "ANNOUNCEMENT" && (
+            <ImageUploader
+              label="Banner Image"
+              hint={editTarget ? "Leave empty to keep existing image" : "Required"}
+              folder="marqet/banners"
+              value={form.imageUrl as string}
+              onChange={(url) => setF("imageUrl", url)}
+            />
+          )}
+
+          <FormField label="Link (URL)" hint="Where the banner/button clicks to">
+            <Input value={form.link as string} onChange={(e) => setF("link", e.target.value)} placeholder="/products" />
           </FormField>
+
           <div className="grid grid-cols-2 gap-3">
             <FormField label="Position" hint="Lower number = shown first">
               <Input type="number" min="1" value={form.position as string} onChange={(e) => setF("position", e.target.value)} placeholder="1" />

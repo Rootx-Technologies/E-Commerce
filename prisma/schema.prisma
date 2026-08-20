@@ -49,6 +49,12 @@ enum OfferType {
   SEASONAL
 }
 
+enum BannerType {
+  HERO
+  PROMOTIONAL
+  ANNOUNCEMENT
+}
+
 enum CreditTransactionType {
   EARNED_PURCHASE
   EARNED_REFERRAL
@@ -320,17 +326,20 @@ model OfferProduct {
 // ─── Banner ───────────────────────────────────────────────────────────────────
 
 model Banner {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
+  type      BannerType @default(HERO)
   title     String
+  brandName String?
   subtitle  String?
   image     String
   link      String?
-  isActive  Boolean  @default(true)
-  position  Int      @default(0)
+  isActive  Boolean    @default(true)
+  position  Int        @default(1)
   publicId  String?
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
 
   @@index([isActive])
+  @@index([type, isActive])
 }
 
 // ─── Wishlist ─────────────────────────────────────────────────────────────────

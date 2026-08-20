@@ -208,14 +208,20 @@ export interface Offer {
   products: Product[];
 }
 
+export type BannerType = "HERO" | "PROMOTIONAL" | "ANNOUNCEMENT";
+
 export interface Banner {
   id: string;
+  type: BannerType;
   title: string;
-  subtitle?: string;
+  brandName?: string | null;
+  subtitle?: string | null;
   image: string;
-  link?: string;
+  link?: string | null;
   isActive: boolean;
   position: number;
+  publicId?: string | null;
+  createdAt?: string | Date;
 }
 
 // ─── Loyalty Credits ──────────────────────────────────────────────────────────

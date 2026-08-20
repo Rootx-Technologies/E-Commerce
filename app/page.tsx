@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HeroSection } from "@/components/home/hero-section";
+import { HeroSlider } from "@/components/home/hero-slider";
 import { FeaturesBar } from "@/components/home/features-bar";
 import { CategoriesSection } from "@/components/home/categories-section";
 import { ProductGrid } from "@/components/products/product-grid";
@@ -12,7 +12,7 @@ import { TestimonialsSection } from "@/components/home/testimonials-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { db } from "@/lib/db";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/constants";
-import type { Product, Category, Brand } from "@/types";
+import type { Product, Category, Brand, Banner } from "@/types";
 
 export const metadata: Metadata = {
   title: `${SITE_NAME} — Premium E-Commerce`,
@@ -68,9 +68,18 @@ export default async function HomePage() {
 
   const flashSaleEnd = new Date(Date.now() + 8 * 60 * 60 * 1000);
 
-  // Top banner for announcement bar (position 0 or first banner with no link used as announcement)
-  const announcementBanner = banners.find((b) => b.position === 0);
-  const promotionalBanners = banners.filter((b) => b.position !== 0);
+  // Split banners by type (backward-compat: old position===0 entries treated as announcement)
+  const announcementBanner =
+    banners.find((b) => b.type === "ANNOUNCEMENT") ??
+    banners.find((b) => b.position === 0);
+
+  const heroSlides = banners.filter((b) => b.type === "HERO");
+
+  const promotionalBanners = banners.filter(
+    (b) =>
+      b.type === "PROMOTIONAL" ||
+      (b.type !== "HERO" && b.type !== "ANNOUNCEMENT" && b.position !== 0)
+  );
 
   return (
     <>
@@ -83,7 +92,7 @@ export default async function HomePage() {
         />
       )}
 
-      <HeroSection />
+      <HeroSlider slides={heroSlides as unknown as Banner[]} />
       <FeaturesBar />
 
       {/* Featured Products */}
@@ -125,7 +134,7 @@ export default async function HomePage() {
       )}
 
       {/* Promotional Banners — DB se (admin se control karo) */}
-      <PromotionalBanner banners={promotionalBanners} />
+      <PromotionalBanner banners={promotionalBanners as unknown as Banner[]} />
 
       {/* Trending */}
       {trending.length > 0 && (

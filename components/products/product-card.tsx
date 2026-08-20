@@ -11,7 +11,6 @@ import { useWishlistStore } from "@/store/wishlist.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useCompareStore } from "@/store/compare.store";
-import { Badge } from "@/components/ui/badge";
 import { getProductAvailableOptions } from "@/lib/product-variants";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
@@ -21,6 +20,44 @@ interface ProductCardProps {
   product: Product;
   className?: string;
   priority?: boolean;
+}
+
+function getPromoBadges(product: Product, discount: number | null) {
+  const badges: { label: string; className: string }[] = [];
+  const tags = product.tags.map((t) => t.toLowerCase());
+  const isBundle = tags.some((t) =>
+    ["bundle", "combo", "set", "pack", "2pc", "3pc"].some((k) => t.includes(k))
+  );
+
+  if (discount && discount >= 25) {
+    badges.push({
+      label: "Crazy Deal",
+      className: "bg-[#ff6b00] text-white",
+    });
+  }
+
+  if (isBundle) {
+    badges.push({
+      label: "Bundle Offer",
+      className: "bg-[#28a745] text-white",
+    });
+  }
+
+  if (product.isBestSeller && badges.length < 2) {
+    badges.push({
+      label: "Best Seller",
+      className: "bg-amber-600 text-white",
+    });
+  }
+
+  if (product.isNew && badges.length < 2) {
+    badges.push({
+      label: "New Arrival",
+      className: "bg-sky-600 text-white",
+    });
+  }
+
+  return badges.slice(0, 2);
 }
 
 export function ProductCard({ product, className, priority = false }: ProductCardProps) {
@@ -45,6 +82,14 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : null;
   const primaryImage = product.images.find((i) => i.isPrimary) ?? product.images[0];
   const secondaryImage = product.images.find((i) => !i.isPrimary) ?? product.images[1];
+  const promoBadges = getPromoBadges(product, discount);
+  const filledStars = Math.max(0, Math.min(5, Math.round(product.rating > 0 ? product.rating : product.reviewCount > 0 ? 5 : 0)));
+  const reviewLabel =
+    product.reviewCount === 0
+      ? "No Reviews"
+      : product.reviewCount === 1
+        ? "1 Review"
+        : `${product.reviewCount} Reviews`;
 
   const handleInitialAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,7 +99,10 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       router.push("/login");
       return;
     }
-    if (hasSizes) { setIsSelectingSize(true); return; }
+    if (hasSizes) {
+      setIsSelectingSize(true);
+      return;
+    }
     addItem(product, 1, undefined, undefined, selectedColor ?? undefined);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1500);
@@ -94,10 +142,9 @@ export function ProductCard({ product, className, priority = false }: ProductCar
     >
       <Link
         href={`/products/${product.slug}`}
-        className="flex flex-col flex-1 h-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-neutral-200/80 transition-all duration-300 hover:shadow-lg hover:ring-neutral-300 hover:-translate-y-0.5"
+        className="flex flex-col flex-1 h-full"
       >
-        {/* ── Image ── */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 flex-shrink-0">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-neutral-50 flex-shrink-0">
           {primaryImage && (
             <>
               <Image
@@ -123,24 +170,12 @@ export function ProductCard({ product, className, priority = false }: ProductCar
             </>
           )}
 
-          {/* Gradient overlay for text readability at bottom */}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+          {discount && discount > 0 && (
+            <span className="absolute left-2.5 top-2.5 z-10 inline-flex items-center rounded-md bg-neutral-950 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+              Save {discount}%
+            </span>
+          )}
 
-          {/* Badges — top left */}
-          <div className="absolute left-2 top-2 flex flex-col gap-1 z-10">
-            {product.isNew && (
-              <span className="inline-flex items-center rounded-md bg-emerald-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm tracking-wide">
-                NEW
-              </span>
-            )}
-            {discount && discount > 0 && (
-              <span className="inline-flex items-center rounded-md bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
-                -{discount}%
-              </span>
-            )}
-          </div>
-
-          {/* Out of stock overlay */}
           {product.stock === 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] z-10">
               <span className="rounded-full bg-neutral-800 px-3 py-1 text-[10px] font-semibold text-white tracking-wide">
@@ -149,51 +184,54 @@ export function ProductCard({ product, className, priority = false }: ProductCar
             </div>
           )}
 
-          {/* Action buttons — top right, slide in on hover */}
-          <div className="absolute right-2 top-2 flex flex-col gap-1.5 z-10">
+          <div className="absolute right-2.5 top-2.5 flex flex-col gap-1.5 z-10">
             <button
               onClick={handleWishlist}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-200",
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0",
                 inWishlist
                   ? "bg-red-500 text-white"
-                  : "bg-white/95 text-neutral-600 hover:bg-red-500 hover:text-white"
+                  : "bg-white text-neutral-700 hover:bg-red-500 hover:text-white"
               )}
               aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
-              <Heart className={cn("h-3 w-3", inWishlist && "fill-current")} />
+              <Heart className={cn("h-3.5 w-3.5", inWishlist && "fill-current")} />
             </button>
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickView(product.slug); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openQuickView(product.slug);
+              }}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-md text-neutral-600 transition-all duration-200 hover:bg-neutral-900 hover:text-white",
+                "flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md text-neutral-700 transition-all duration-200 hover:bg-neutral-900 hover:text-white",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-50"
               )}
               aria-label="Quick view"
             >
-              <Eye className="h-3 w-3" />
+              <Eye className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={(e) => {
-                e.preventDefault(); e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
                 toggleCompare(product);
                 toast.success(isInCompare(product.id) ? "Removed from compare" : "Added to compare!", { duration: 1500 });
               }}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-200",
+                "flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all duration-200",
                 "sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:delay-100",
                 isInCompare(product.id)
                   ? "bg-amber-500 text-white"
-                  : "bg-white/95 text-neutral-600 hover:bg-amber-500 hover:text-white"
+                  : "bg-white text-neutral-700 hover:bg-amber-500 hover:text-white"
               )}
               aria-label="Compare"
             >
-              <GitCompare className="h-3 w-3" />
+              <GitCompare className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* Quick Size/Color overlay */}
           <AnimatePresence>
             {isSelectingSize && (
               <motion.div
@@ -201,7 +239,10 @@ export function ProductCard({ product, className, priority = false }: ProductCar
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.18 }}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 className="absolute inset-x-0 bottom-0 z-20 bg-white/97 backdrop-blur-md p-2.5 border-t border-neutral-200 shadow-lg rounded-b-xl flex flex-col gap-1.5"
               >
                 <div className="flex items-center justify-between">
@@ -209,8 +250,13 @@ export function ProductCard({ product, className, priority = false }: ProductCar
                     {sizeType === "shoes" ? "Shoe Size" : "Select Size"}
                   </span>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsSelectingSize(false); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsSelectingSize(false);
+                    }}
                     className="p-0.5 text-neutral-400 hover:text-neutral-700 rounded transition-colors"
+                    aria-label="Close size picker"
                   >
                     <X size={12} />
                   </button>
@@ -223,9 +269,15 @@ export function ProductCard({ product, className, priority = false }: ProductCar
                         <button
                           key={c.name}
                           type="button"
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedColor(c.name); }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedColor(c.name);
+                          }}
                           className={`h-3.5 w-3.5 rounded-full transition-all shrink-0 ${
-                            selectedColor === c.name ? "ring-1 ring-neutral-900 ring-offset-1 scale-110" : "opacity-75 hover:opacity-100"
+                            selectedColor === c.name
+                              ? "ring-1 ring-neutral-900 ring-offset-1 scale-110"
+                              : "opacity-75 hover:opacity-100"
                           }`}
                           style={{ backgroundColor: c.hex }}
                           title={c.name}
@@ -251,88 +303,74 @@ export function ProductCard({ product, className, priority = false }: ProductCar
             )}
           </AnimatePresence>
 
-          {/* Add to cart bar — bottom, appears on hover */}
-          {!isSelectingSize && (
-            <div className={cn(
-              "absolute bottom-0 left-0 right-0 px-2 pb-2 z-10 transition-all duration-200",
-              "sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0",
-              "opacity-100"
-            )}>
-              <button
-                onClick={handleInitialAddToCart}
-                disabled={product.stock === 0}
-                className={cn(
-                  "flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-semibold transition-all duration-200 shadow-lg",
-                  justAdded
-                    ? "bg-green-600 text-white"
-                    : "bg-neutral-900/92 backdrop-blur-sm text-white hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-                )}
-              >
-                {justAdded ? (
-                  <><Check className="h-3 w-3 stroke-[3]" /> Added!</>
-                ) : (
-                  <><ShoppingBag className="h-3 w-3" />{hasSizes ? "Pick Size & Add" : "Add to Cart"}</>
-                )}
-              </button>
-            </div>
+          {!isSelectingSize && product.stock > 0 && (
+            <button
+              onClick={handleInitialAddToCart}
+              className={cn(
+                "absolute bottom-2.5 right-2.5 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-md transition-all duration-200",
+                "hover:scale-105 hover:bg-neutral-950 hover:text-white hover:border-neutral-950",
+                justAdded && "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-600 hover:text-white"
+              )}
+              aria-label={hasSizes ? "Pick size and add to cart" : "Add to cart"}
+            >
+              {justAdded ? (
+                <Check className="h-4 w-4 stroke-[3]" />
+              ) : (
+                <ShoppingBag className="h-4 w-4" />
+              )}
+            </button>
           )}
         </div>
 
-        {/* ── Info ── seamlessly connected to image */}
-        <div className="flex flex-col flex-1 justify-between px-2.5 pt-2 pb-2.5">
-          {/* Brand + name */}
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-neutral-400 truncate">
-              {product.brand?.name ?? "Exclusive"}
-            </p>
-            <h3
-              className="mt-0.5 text-[13px] font-semibold leading-snug text-neutral-900 line-clamp-2 group-hover:text-amber-600 transition-colors"
-              title={product.name}
-            >
-              {product.name}
-            </h3>
+        <div className="flex flex-col flex-1 pt-2.5 pb-1">
+          {promoBadges.length > 0 && (
+            <div className="mb-1.5 flex flex-wrap items-center gap-1">
+              {promoBadges.map((badge) => (
+                <span
+                  key={badge.label}
+                  className={cn(
+                    "inline-flex items-center rounded-md px-1.5 py-0.5 text-[9px] font-bold leading-none",
+                    badge.className
+                  )}
+                >
+                  {badge.label}
+                </span>
+              ))}
+            </div>
+          )}
 
-            {/* Color swatches preview */}
-            {hasColors && colors.length > 0 && (
-              <div className="flex items-center gap-1 mt-1">
-                {colors.slice(0, 5).map((c) => (
-                  <span
-                    key={c.name}
-                    className="h-2 w-2 rounded-full border border-neutral-200 inline-block"
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
-                {colors.length > 5 && (
-                  <span className="text-[8px] text-neutral-400">+{colors.length - 5}</span>
-                )}
-              </div>
-            )}
+          <h3
+            className="text-[13px] font-bold leading-snug text-neutral-900 line-clamp-2"
+            title={product.name}
+          >
+            {product.name}
+          </h3>
+
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <div className="flex items-center gap-px" aria-hidden>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    "h-3 w-3",
+                    i < filledStars
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-neutral-200 text-neutral-200"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] font-medium text-sky-600">{reviewLabel}</span>
           </div>
 
-          {/* Price + rating */}
-          <div className="mt-1.5">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-sm font-extrabold tracking-tight text-neutral-900">
-                {formatPrice(product.price)}
+          <div className="mt-auto pt-2 flex items-baseline gap-2 flex-wrap">
+            <span className="text-sm font-bold tracking-tight text-neutral-900">
+              {formatPrice(product.price)}
+            </span>
+            {product.comparePrice && product.comparePrice > product.price && (
+              <span className="text-[12px] text-neutral-400 line-through">
+                {formatPrice(product.comparePrice)}
               </span>
-              {product.comparePrice && product.comparePrice > product.price && (
-                <span className="text-[11px] text-neutral-400 line-through">
-                  {formatPrice(product.comparePrice)}
-                </span>
-              )}
-            </div>
-
-            {product.reviewCount > 0 && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-                <span className="text-[11px] font-bold text-neutral-700">
-                  {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
-                </span>
-                <span className="text-[10px] text-neutral-400">
-                  ({product.reviewCount})
-                </span>
-              </div>
             )}
           </div>
         </div>
