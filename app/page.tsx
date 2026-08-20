@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { HeroSlider } from "@/components/home/hero-slider";
-import { FeaturesBar } from "@/components/home/features-bar";
 import { CategoriesSection } from "@/components/home/categories-section";
 import { ProductGrid } from "@/components/products/product-grid";
 import { SectionHeader } from "@/components/home/section-header";
@@ -66,7 +65,7 @@ export default async function HomePage() {
     price: Math.round(p.price * 0.75),
   }));
 
-  const flashSaleEnd = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  const flashSaleEnd = new Date(Date.now() + (6 * 24 + 18) * 60 * 60 * 1000);
 
   // Split banners by type (backward-compat: old position===0 entries treated as announcement)
   const announcementBanner =
@@ -93,11 +92,20 @@ export default async function HomePage() {
       )}
 
       <HeroSlider slides={heroSlides as unknown as Banner[]} />
-      <FeaturesBar />
+
+      {/* Flash Sale — right after hero, exportleftovers style */}
+      {flashSaleProducts.length > 0 && (
+        <FlashSaleSection
+          products={flashSaleProducts as unknown as Product[]}
+          endTime={flashSaleEnd}
+        />
+      )}
+
+      <CategoriesSection categories={categories as unknown as Category[]} />
 
       {/* Featured Products */}
       {featuredProducts.length > 0 && (
-        <section className="py-16">
+        <section className="py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeader
               title="Featured Products"
@@ -107,16 +115,6 @@ export default async function HomePage() {
             <ProductGrid products={featuredProducts as unknown as Product[]} columns={4} />
           </div>
         </section>
-      )}
-
-      <CategoriesSection categories={categories as unknown as Category[]} />
-
-      {/* Flash Sale */}
-      {flashSaleProducts.length > 0 && (
-        <FlashSaleSection
-          products={flashSaleProducts as unknown as Product[]}
-          endTime={flashSaleEnd}
-        />
       )}
 
       {/* New Arrivals */}
